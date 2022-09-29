@@ -10,7 +10,7 @@ eureka:
     register-with-eureka: true #注册到注册中心
     fetch-registry: true #是否去注册中心获取其他服务的地址：是
     serviceUrl:
-      defaultZone: http://127.0.0.1:8080/eureka/ #注册中心地址
+      defaultZone: http://127.0.0.1:8899/eureka/ #注册中心地址
 mybatis:
   mapper-locations: mapper/*  #mybatis映射文件路径
   config-location: classpath:/mybatis/mybatis-config.xml #mybatis配置文件路径
