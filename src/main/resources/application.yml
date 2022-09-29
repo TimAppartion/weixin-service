@@ -1,0 +1,43 @@
+server:
+  port: 8088  #端口号8088
+eureka:
+  instance:
+    hostname: 127.0.0.1
+  server:
+    enable-self-preservation: false      # 关闭自我保护模式（默认为打开）
+    eviction-interval-timer-in-ms: 600000  # 续期时间，即扫描失效服务的间隔时间 一分钟
+  client:
+    register-with-eureka: true #注册到注册中心
+    fetch-registry: true #是否去注册中心获取其他服务的地址：是
+    serviceUrl:
+      defaultZone: http://127.0.0.1:9988/eureka/ #注册中心地址
+mybatis:
+  mapper-locations: mapper/*  #mybatis映射文件路径
+  config-location: classpath:/mybatis/mybatis-config.xml #mybatis配置文件路径
+  type-aliases-package: com.example.jiuzhou.user.model
+spring:
+  application:
+    name: weixin-service #项目名
+  datasource:
+    driverClassName: com.microsoft.sqlserver.jdbc.SQLServerDriver
+    url: jdbc:sqlserver://120.26.37.170:1433;DatabaseName=F2V20Init1
+    username: sa
+    password: Fxintel123
+    #Mysql
+  #  datasource:
+  #    url: jdbc:mysql://127.0.0.1:3306/pam?characterEncoding=utf-8&serverTimezone=Asia/Shanghai
+  #    username: root
+  #    password: wh2234040
+  #    driver-class-name: com.mysql.cj.jdbc.Driver
+  freemarker:
+    prefer-file-system-access: false
+jdbc:
+  driverClass: com.microsoft.sqlserver.jdbc.SQLServerDriver
+  url: jdbc:sqlserver://120.26.37.170:1433;DatabaseName=F2V20Init1
+  username: sa
+  password: Fxintel123
+#  mysql
+#  driverClass: com.mysql.jdbc.Driver
+#  url: jdbc:mysql://localhost:3306/pam
+#  username: root
+#  password: wh2234040

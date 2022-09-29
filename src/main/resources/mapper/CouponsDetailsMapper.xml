@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.weixin.user.mapper.CouponsDetailsMapper">
+    <!--    <resultMap id="baseMap" type="com.example.jiuzhou.user.model.CouponsDetails">-->
+    <!--        <id property="id" column="Id"></id>-->
+    <!--        <result property="planId" column="PlanId"></result>-->
+    <!--        <result property="userId" column="UserId"></result>-->
+    <!--        <result property="provideTime" column="ProvideTime"></result>-->
+    <!--        <result property="status" column="Status"></result>-->
+    <!--        <result property="useTime" column="UseTime"></result>-->
+    <!--    </resultMap>-->
+    <select id="getList" resultType="com.example.weixin.user.model.CouponsDetails">
+        select PlanId,UserId,ProvideTime from CouponsDetails
+    </select>
+</mapper>
