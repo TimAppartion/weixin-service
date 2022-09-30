@@ -54,6 +54,12 @@
 
 
     <dependencies>
+        <!--日志拆分 -->
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>1.2.3</version>
+        </dependency>
         <!--注册中心相关依赖-->
         <dependency>
             <groupId>org.springframework.boot</groupId>

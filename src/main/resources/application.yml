@@ -18,6 +18,8 @@ mybatis:
 spring:
   application:
     name: weixin-service #项目名
+  profiles:
+    active: prod
   datasource:
     driverClassName: com.microsoft.sqlserver.jdbc.SQLServerDriver
     url: jdbc:sqlserver://120.26.37.170:1433;DatabaseName=F2V20Init1
@@ -41,3 +43,7 @@ jdbc:
 #  url: jdbc:mysql://localhost:3306/pam
 #  username: root
 #  password: wh2234040
+
+# 日志
+logging:
+  config: classpath:logback.xml
