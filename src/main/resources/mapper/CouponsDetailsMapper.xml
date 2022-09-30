@@ -15,4 +15,45 @@
     <select id="getList" resultType="com.example.weixin.user.model.CouponsDetails">
         select PlanId,UserId,ProvideTime from CouponsDetails
     </select>
+    <select id="getCouponsList" resultType="com.example.weixin.user.view.CouponsView">
+        SELECT
+            cd.Id,
+            cd.PlanId,
+            cd.ProvideTime,
+            cd.Status,
+            cd.UseTime,
+            cp.CouponsMoney,
+            cp.StartTime,
+            cp.EndTime,
+            cp.Mark,
+            cp.Type,
+            cp.TermMoney,
+            cp.Status as PlaneStatus,
+            cd.UserId,
+            cp.CouponsType
+        FROM CouponsDetails cd
+        LEFT JOIN CouponsPlan cp ON cp.Id= cd.PlanId
+        WHERE
+            cd.UserId=#{query.userId}
+        <if test="query.status!=null and query.status!=''">
+            and cd.Status=#{query.status}
+        </if>
+        <if test="query.type!=null and query.type!=''">
+            and cd.Type=#{query.type}
+        </if>
+        <if test="query.couponsType!=null and query.couponsType!=''">
+            and cd.CouponsType=#{query.couponsType}
+        </if>
+        <if test="query.other!=null">
+            ${query.other}
+        </if>
+<!--        <if test="query.fee!=null ">-->
+<!--            and ( -->
+<!--            (cp.Type in (2,4) and cp.CouponsMoney * #{query.fee} >= 0.01 and (cp.TermMoney <![CDATA[<=]]> #{query.fee} or cp.TermMoney is null ) )-->
+<!--            or-->
+<!--            (cp.Type in (1,3) and (#{query.fee} - cp.CouponsMoney)>=0.01 and (cp.TermMoney <![CDATA[<=]]> #{query.fee}  OR cp.TermMoney IS NULL )-->
+<!--            )-->
+<!--        </if>-->
+        order by cp.EndTime desc
+    </select>
 </mapper>
