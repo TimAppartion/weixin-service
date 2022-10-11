@@ -1,6 +1,6 @@
-package com.example.weixin.user.service;
+package com.example.jiuzhou.user.service;
 
-import com.example.weixin.user.model.CouponsDetails;
+import com.example.jiuzhou.user.model.CouponsDetails;
 
 import java.util.List;
 

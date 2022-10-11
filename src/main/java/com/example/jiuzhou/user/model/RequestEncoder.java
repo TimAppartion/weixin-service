@@ -1,0 +1,53 @@
+package com.example.jiuzhou.user.model;
+
+import java.security.MessageDigest;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
+
+public class RequestEncoder {
+    private static final char[] HEX_DIGITS = {'0', '1', '2', '3', '4', '5',
+            '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
+
+    public static String encode(String algorithm, String str) {
+        if (str == null) {
+            return null;
+        }
+        try {
+            MessageDigest messageDigest = MessageDigest.getInstance(algorithm);
+            messageDigest.update(str.getBytes("UTF-8"));
+            return getFormattedText(messageDigest.digest());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+
+    private static String getFormattedText(byte[] bytes) {
+        int len = bytes.length;
+        StringBuilder buf = new StringBuilder(len * 2);
+        for (int j = 0; j < len; j++) {
+            buf.append(HEX_DIGITS[(bytes[j] >> 4)]);
+            buf.append(HEX_DIGITS[bytes[j] ]);
+        }
+        return buf.toString();
+    }
+
+    public static String formatRequest(Map<String, String> data) {
+        Set<String> keySet = data.keySet();
+        Iterator<String> it = keySet.iterator();
+        StringBuffer sb = new StringBuffer();
+        while (it.hasNext()) {
+            String key = it.next();
+            Object value = data.get(key);
+            if (value instanceof String) {
+                sb.append(key + "=" + value + "&amp;");
+            }
+        }
+        if (sb.length() != 0) {
+            System.out.println("sb.substring(0, sb.length() - 1) = " + sb.substring(0, sb.length() - 1));
+            return sb.substring(0, sb.length() - 1);
+        }
+        return null;
+    }
+}

@@ -1,8 +1,8 @@
-package com.example.weixin.user.mapper;
+package com.example.jiuzhou.user.mapper;
 
-import com.example.weixin.user.model.CouponsDetails;
-import com.example.weixin.user.query.CouponsQuery;
-import com.example.weixin.user.view.CouponsView;
+import com.example.jiuzhou.user.model.CouponsDetails;
+import com.example.jiuzhou.user.query.CouponsQuery;
+import com.example.jiuzhou.user.view.CouponsView;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;

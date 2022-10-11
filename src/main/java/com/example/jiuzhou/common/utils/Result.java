@@ -1,6 +1,6 @@
-package com.example.weixin.common.utils;
+package com.example.jiuzhou.common.utils;
 
-import com.example.weixin.common.Enum.ResultEnum;
+import com.example.jiuzhou.common.Enum.ResultEnum;
 import org.apache.commons.lang.StringUtils;
 
 public class Result<T> {
@@ -57,6 +57,12 @@ public class Result<T> {
         Result result = new Result();
         result.setCode(resultEnum.getCode());
         result.setMsg(StringUtils.isEmpty(msg)? resultEnum.getMsg():msg);
+        return result;
+    }
+    public static Result error(ResultEnum resultEnum) {
+        Result result = new Result();
+        result.setCode(resultEnum.getCode());
+        result.setMsg( resultEnum.getMsg());
         return result;
     }
 

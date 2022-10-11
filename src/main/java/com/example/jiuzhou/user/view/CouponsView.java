@@ -1,4 +1,4 @@
-package com.example.weixin.user.view;
+package com.example.jiuzhou.user.view;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
@@ -42,7 +42,7 @@ public class CouponsView {
 
     private Integer planeStatus;
 
-    private String userId;
+    private String UId;
 
     private Integer couponsType;
     

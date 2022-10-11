@@ -1,12 +1,12 @@
-package com.example.weixin.user.controller;
+package com.example.jiuzhou.user.controller;
 
 
-import com.example.weixin.common.Enum.ResultEnum;
-import com.example.weixin.user.mapper.CouponsDetailsMapper;
-import com.example.weixin.user.model.CouponsDetails;
-import com.example.weixin.common.utils.Result;
-import com.example.weixin.user.query.CouponsQuery;
-import com.example.weixin.user.service.CouponsService;
+import com.example.jiuzhou.common.Enum.ResultEnum;
+import com.example.jiuzhou.user.mapper.CouponsDetailsMapper;
+import com.example.jiuzhou.user.model.CouponsDetails;
+import com.example.jiuzhou.common.utils.Result;
+import com.example.jiuzhou.user.query.CouponsQuery;
+import com.example.jiuzhou.user.service.CouponsService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +15,6 @@ import javax.annotation.Resource;
 import java.util.List;
 
 @Slf4j
-
 @RestController
 @RequestMapping("/weixin_guide/Coupons")
 @ResponseBody

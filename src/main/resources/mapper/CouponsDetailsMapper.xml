@@ -3,7 +3,7 @@
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="com.example.weixin.user.mapper.CouponsDetailsMapper">
+<mapper namespace="com.example.jiuzhou.user.mapper.CouponsDetailsMapper">
     <!--    <resultMap id="baseMap" type="com.example.jiuzhou.user.model.CouponsDetails">-->
     <!--        <id property="id" column="Id"></id>-->
     <!--        <result property="planId" column="PlanId"></result>-->
@@ -12,10 +12,10 @@
     <!--        <result property="status" column="Status"></result>-->
     <!--        <result property="useTime" column="UseTime"></result>-->
     <!--    </resultMap>-->
-    <select id="getList" resultType="com.example.weixin.user.model.CouponsDetails">
+    <select id="getList" resultType="com.example.jiuzhou.user.model.CouponsDetails">
         select PlanId,UserId,ProvideTime from CouponsDetails
     </select>
-    <select id="getCouponsList" resultType="com.example.weixin.user.view.CouponsView">
+    <select id="getCouponsList" resultType="com.example.jiuzhou.user.view.CouponsView">
         SELECT
             cd.Id,
             cd.PlanId,
@@ -29,12 +29,12 @@
             cp.Type,
             cp.TermMoney,
             cp.Status as PlaneStatus,
-            cd.UserId,
+            cd.UId,
             cp.CouponsType
         FROM CouponsDetails cd
         LEFT JOIN CouponsPlan cp ON cp.Id= cd.PlanId
         WHERE
-            cd.UserId=#{query.userId}
+            cd.UId=#{query.userId}
         <if test="query.status!=null and query.status!=''">
             and cd.Status=#{query.status}
         </if>

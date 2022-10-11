@@ -1,4 +1,4 @@
-package com.example.weixin.user.model;
+package com.example.jiuzhou.user.model;
 
 import lombok.Data;
 
@@ -11,7 +11,7 @@ import java.util.Date;
 public class CouponsDetails implements Serializable {
     private Integer Id;
     private Integer PlanId;
-    private String UserId;
+    private String UId;
     private Date ProvideTime;
     private Integer Status;
     private Date UseTime;

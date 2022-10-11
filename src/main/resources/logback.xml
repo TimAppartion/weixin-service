@@ -9,7 +9,7 @@
     <property name="logPathInfo" value="D:/JiuZhou/logs/service-log/info"/>
 
     <property name="LOG_PATH" value="D:/JiuZhou/logs"/>
-    <property name="LOG_FILE" value="weixin"/>
+    <property name="LOG_FILE" value="jiuzhou"/>
     <!-- CONSOLG 控制台日志-->
     <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
@@ -100,7 +100,7 @@
             <appender-ref ref="console"/>
             <appender-ref ref="INFO_FILE"/>
         </logger>
-        <logger name="com.example.weixin.user.mapper" level="DEBUG" additivity="true">
+        <logger name="com.example.jiuzhou.user.mapper" level="DEBUG" additivity="true">
             <appender-ref ref="console"/>
         </logger>
     </springProfile>

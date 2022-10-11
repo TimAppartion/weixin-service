@@ -1,4 +1,4 @@
-package com.example.weixin.common.Enum;
+package com.example.jiuzhou.common.Enum;
 
 public enum ResultEnum {
     //这里是可以自己定义的，方便与前端交互即可
@@ -7,6 +7,7 @@ public enum ResultEnum {
     USER_NOT_EXIST(1,"用户不存在"),
     USER_IS_EXISTS(2,"用户已存在"),
     MISS_DATA(3,"数据为空"),
+    ERROR(501,"服务器内部错误")
     ;
     private Integer code;
     private String msg;

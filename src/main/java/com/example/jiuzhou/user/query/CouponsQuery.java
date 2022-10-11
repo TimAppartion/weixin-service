@@ -1,4 +1,4 @@
-package com.example.weixin.user.query;
+package com.example.jiuzhou.user.query;
 
 import lombok.Data;
 
