@@ -3,9 +3,7 @@ package com.example.jiuzhou.common.utils;
 import java.io.IOException;
 import java.util.Map;
 import com.alibaba.fastjson.JSONObject;
-import com.example.jiuzhou.user.mapper.AbpWeixinConfigMapper;
 import com.example.jiuzhou.user.model.AbpSettings;
-import com.example.jiuzhou.user.model.AbpWeixinConfig;
 import com.example.jiuzhou.user.model.RequestEncoder;
 import com.jfinal.kit.HttpKit;
 import com.jfinal.kit.Prop;
@@ -21,8 +19,7 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
-
-import javax.annotation.Resource;
+import org.springframework.beans.factory.annotation.Value;
 import java.util.HashMap;
 import java.util.Random;
 
@@ -44,8 +41,8 @@ public class SubMailUtils {
     //会员注册通知：昵称:@,联系方式:@
     private static final String CONTENT_REGISTER_NOTIFY = prop.get("content_register_notify");
 
-    @Resource
-    private AbpWeixinConfigMapper abpWeixinConfigMapper;
+    @Value("${WeiXin.appName}")
+    private static String APPNAME;
 
     public static Integer sendMsg(Integer type,String to,String code,String name,String tel){
         String content="";
@@ -61,9 +58,7 @@ public class SubMailUtils {
             JSONObject params = new JSONObject();
             AbpSettings abpSettings=new AbpSettings();
             abpSettings.setTenantId(1);
-            AbpWeixinConfig abpWeixinConfig=new AbpWeixinConfig();
-            abpWeixinConfig.setTenantId(1);
-            params.put("content","【九州停车】"+content);
+            params.put("content","【"+APPNAME+"】"+content);
             params.put("signature",AppKEY);
             params.put("to",to);
             params.put("appid",APPID);
@@ -109,7 +104,7 @@ public class SubMailUtils {
         String appid = "";
         String appkey = "";
         String to = "18141131931";
-        String content = "【昌宁停车】你好，你的验证码是2257";
+        String content = "【"+APPNAME+"】你好，你的验证码是2257";
         String sign_type = "md5";
         String sign_version = "2";
 

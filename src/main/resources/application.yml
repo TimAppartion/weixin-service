@@ -22,7 +22,7 @@ spring:
     active: prod
   datasource:
     driverClassName: com.microsoft.sqlserver.jdbc.SQLServerDriver
-    url: jdbc:sqlserver://120.26.37.170:1433;DatabaseName=new
+    url: jdbc:sqlserver://120.26.37.170:1433;DatabaseName=F2V20Init1
     username: sa
     password: Fxintel123
     #Mysql
@@ -33,6 +33,18 @@ spring:
   #    driver-class-name: com.mysql.cj.jdbc.Driver
   freemarker:
     prefer-file-system-access: false
+  redis:
+    database: 0
+    host: 127.0.0.1
+    port: 6379
+    password: foobared
+    timeout: 30000
+    lettuce:
+      pool:
+        max-active: 8   #最大连接数（负值没有限制）
+        max-wait: -1ms    #最大阻塞等待时间
+        max-idle: 8     #最大空闲连接
+        min-idle: 0     #最小空闲连接
 jdbc:
   driverClass: com.microsoft.sqlserver.jdbc.SQLServerDriver
   url: jdbc:sqlserver://120.26.37.170:1433;DatabaseName=new
@@ -47,6 +59,8 @@ jdbc:
 # 日志
 logging:
   config: classpath:logback.xml
+
+appName: 九州停车
 
 WeiXin:
   appId: wx5b6932928316fca1

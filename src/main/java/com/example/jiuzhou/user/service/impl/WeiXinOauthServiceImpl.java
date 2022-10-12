@@ -3,21 +3,25 @@ package com.example.jiuzhou.user.service.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.alipay.api.domain.PageInfo;
 import com.example.jiuzhou.common.Enum.ResultEnum;
 import com.example.jiuzhou.common.utils.Result;
+import com.example.jiuzhou.user.mapper.ExtOtherAccountMapper;
 import com.example.jiuzhou.user.mapper.TUserMapper;
+import com.example.jiuzhou.user.model.ExtOtherAccount;
 import com.example.jiuzhou.user.model.TUser;
 import com.example.jiuzhou.user.query.OauthQuery;
 import com.example.jiuzhou.user.service.WeiXinOauthService;
 import com.jfinal.weixin.sdk.api.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import tk.mybatis.mapper.entity.Example;
 
 import javax.annotation.Resource;
-import java.util.Collections;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.UUID;
 
@@ -26,19 +30,25 @@ import java.util.UUID;
 public class WeiXinOauthServiceImpl implements WeiXinOauthService {
 
     @Value("${WeiXin.appId}")
-    private String APP_ID;
+    private static String APP_ID;
 
     @Value("${WeiXin.appSecret}")
-    private String APP_SECRET;
+    private static String APP_SECRET;
 
     @Value("${WeiXin.token}")
-    private String TOKEN;
+    private static String TOKEN;
 
     @Value("${WeiXin.TenantId}")
-    private Integer TENANTID;
+    private static Integer TENANTID;
 
     @Resource
     private TUserMapper tUserMapper;
+
+    @Resource
+    private ExtOtherAccountMapper extOtherAccountMapper;
+
+    @Resource
+    private RedisTemplate redisTemplate;
 
     @Override
     public Result<?> index(OauthQuery query) {
@@ -85,9 +95,36 @@ public class WeiXinOauthServiceImpl implements WeiXinOauthService {
         TUser tUser=tUserMapper.selectOneByExample(t);
         if(null!=tUser){
             tUser.setOpenId(query.getOpenId());
+            tUser.setUserId(query.getUserId());
             tUserMapper.updateByPrimaryKey(tUser);
+            createAccount(query.getMobile());
             return Result.success(tUser);
         }
+
         return Result.error(ResultEnum.ERROR,"绑定失败");
+    }
+
+    /**
+     * 创建储值卡
+     * @param mobile
+     */
+    private void createAccount(String mobile){
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+
+        Example example=new Example(ExtOtherAccount.class);
+        example.createCriteria()
+                .andEqualTo("tel", mobile);
+        TUser tUser=tUserMapper.selectOneByExample(example);
+        if(tUser!=null){
+            ExtOtherAccount extOtherAccount=new ExtOtherAccount();
+            extOtherAccount.setAuthenticationSource("WeiXin");
+            extOtherAccount.setUserName(mobile);
+            extOtherAccount.setName(mobile);
+            extOtherAccount.setPassword("123456");
+            extOtherAccount.setTelePhone(mobile);
+            extOtherAccount.setIsActive(1);
+//            extOtherAccount.setCreatorUserId(redisTemplate.opsForHash().keys("config").);
+        }
     }
 }
