@@ -6,17 +6,20 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 import org.springframework.format.annotation.DateTimeFormat;
 
-import javax.persistence.Column;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.util.Date;
 
 @Data
 @Table(name = "TUser")
 public class TUser {
+
+    @Id
+    @GeneratedValue(generator = "JDBC" ,strategy = GenerationType.IDENTITY)
     @Column(name="Id")
+    @Transient
     private Integer Id;
 
-    @Column(name="UId")
+    @Column(name="u_id")
     private String UId;
 
     @Column(name="TenantId")
@@ -104,4 +107,7 @@ public class TUser {
 
     @Column(name="birthday")
     private String birthday;
+
+    @Column(name = "head_img_url")
+    private String headImgUrl;
 }

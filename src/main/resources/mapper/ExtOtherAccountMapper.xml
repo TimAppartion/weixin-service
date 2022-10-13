@@ -5,4 +5,7 @@
 
 <mapper namespace="com.example.jiuzhou.user.mapper.ExtOtherAccountMapper">
 
+    <select id="getByUid" resultType="com.example.jiuzhou.user.model.ExtOtherAccount">
+        select * from ExtOtherAccount where u_id = #{uid}
+    </select>
 </mapper>

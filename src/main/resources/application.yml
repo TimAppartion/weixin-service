@@ -22,7 +22,7 @@ spring:
     active: prod
   datasource:
     driverClassName: com.microsoft.sqlserver.jdbc.SQLServerDriver
-    url: jdbc:sqlserver://120.26.37.170:1433;DatabaseName=F2V20Init1
+    url: jdbc:sqlserver://120.26.37.170:1433;DatabaseName=new
     username: sa
     password: Fxintel123
     #Mysql
@@ -37,7 +37,7 @@ spring:
     database: 0
     host: 127.0.0.1
     port: 6379
-    password: foobared
+    password:
     timeout: 30000
     lettuce:
       pool:
@@ -60,19 +60,6 @@ jdbc:
 logging:
   config: classpath:logback.xml
 
-appName: 九州停车
 
-WeiXin:
-  appId: wx5b6932928316fca1
-  appSecret: 136d8b0169a428b032c541a785901c08
-  token: yctc
-  TenantId: 1
 
-ZhiFuBao:
-  app_id: 2021003155685199
-  app_private_key: MIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQCXNNW8egmpIj4+mJH476ybWBl/aaxaFTPtoVzdzJuvWmkANzf8HLJAcDhw1mOWeEWwznNEO8IY97bq3pIQk4pDbuczeDW+XzddXth/nnEVK8lyD/klgqpGIMI3f1hJZCtIpI/z4oW1MU/nN6yaMFXEKWlGrE2i0p6uEvU5tZQA7PhcBOzXab1raBNf7pJbl33ad6H/VdarkMsofs3dj+YRKX1eAdykGcvPympIQgnaSr6SM+uOrb2mAgZj2NxNOOPSUp2dfEAp1RMW+2um4rkApQRJQioe58y3wnzpY2zON4qHPsS1PL0cxt8K1DUg1q+QPBKG+eK7kOtLq/CfqrlvAgMBAAECggEAUd7kv8mgQ3jsFP6NQyma3v3jyG5SSPBkDo2pd9rajSa55ckAQjzTczqQBODASW/T5DjUhqSIovY1j5R1qA4K9hoti1vSVcK+eorpVKhYeGseBumJMHtAcPo5zszf49Ud7pZT72y+ku4hYoNtrIrxVWZKv156Jug9zOks6FNd0OWpJm20MAhrWrPo0futsjh383MFAe1DZ+n2UvoiTVyTVV062X+L00DTiBUc4bNGCr1N7GovaOsfRU1Ap7kDiUnONO/1ywR8dfOWKCz6yYKJTgcNmGWXwGbeDY0NIVIVPIgc4O8IA5km7kqOZ9d/hKv36D4OgnzA7HNDcQGNCW9NgQKBgQDLAEuQikmSYzzpBHu2ZjlhS38/YHl2ILxdRSW+j8brgP/uUqX2c+e+BWDgV9zSYoLVxO9T1d6mXwDAGJ2UlcIJiAsbDpS84yb3yUNLXB0tLfy2BQZvX6ZbMGiXV/4JdwnAbjlr8HbLNK6SmFcKygE7APomIiBAtY95CwnyoN/drwKBgQC+rs4gSYsAieiyOac5GJRa0ZDZa0ij1DYPEh1wS/fLbrSbH4NPA4M3av22w0/fEh8YyUjsKiu+NqzaXFT2E8iNHtc6c4f95uGAKy0Vu+d70UUL8wU5aKwTMtH9Ect+1krnSVmpLMQx/PoSpKwinIceO0h7puNY/dDovuP9CS+QQQKBgCZn7OPwtdCjQ8/WEE3G804sCWwFJZWqxdhjj6uI6hp+Mm11Z37EGPEDdXucQ+PtzVECTEExMkmJqcuuHIoS9z30Zh19WbiOxT2V70xfpgl5LNmHA9uoXgHcm70eYaqKweaNNAHu4Zq6YdjMR5N7+lWebrUuOankb7t30i78Lr5zAoGALhEbOU+rJkkrD4vAK5oVlU9V2EED/phxKvjsZcnkpqArP+LAHWGy3LubagELlc/R9XIDjRKvGLgq0GJIIF8tL3LI+pUYwK17wzQrIzoPNamcLcPbekAgek7nzmTzLcRlujTNVYK8L3t3ivN/pqj8N8CIxV7PRBul0eT0PZhvhkECgYAkd3XiB85avgGnjH2+2ZKaf8EsenOgjqvFGsSTqWzsSsQQX+5B7X3SeqKo/WmVVBVLQ2Uzwlq7UdSusj8B20h6nVce7K+/9qDMi462hN7QdKFsengJhtXPb8JybCOXQpjB1PQpo2Xd+Nx50GMMfovNUnZMzRprpilRA4VbAcCuTQ==
-  app_public_key: MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAg8vS4BAManUzm5L2iUJRAPZyCxOR7Z35xxMd/AxtINhWHFoyKyEri9aPf/c6To3ptO0CvJKP/Z4tDhZ6tE/WS27AyiBxtJFvyDA5LDsw37Uh41uUy31ctxn+uG1TmIfh17Bevs1qMGsjVcnK0+BEcPujyzjx4UAtfqV6IWmbI77s5wd/1lgKMgEcjMIJvN62Wgp2tYQs9bn42NS2XmuWuJOROMn+KfJ0CmTiJMNOe4DpKQ5g8zQ5bzML/YirLdpheQyBFUqflnwmHI1XRWkwY5N9PG1+AXDXqF3VOamiYGkQAk3AkrO0MmKlvYesqDlNlsz9Nd48RqXw1Y9WwkFgFQIDAQAB
-  charset: UTF-8
-  app_url: https://openapi.alipay.com/gateway.do
-  notify_url: http://120.26.37.170:8082/weixin_guide/zfb/callback
-  return_url: http://120.26.37.170:8082/weixin_guide/zfb/callback
+

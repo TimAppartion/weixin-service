@@ -13,4 +13,12 @@ import java.util.List;
 @Repository
 public interface TUserMapper extends Mapper<TUser> {
     TUser getByTel(@Param("tel")String tel);
+
+    TUser getByUid(@Param("uid")String uid);
+
+    TUser getByOpenId(@Param("openId")String openId);
+
+    TUser getByUserId(@Param("userId")String userId);
+
+    TUser getByCarNumber(@Param("plateNumber")String plateNumber);
 }

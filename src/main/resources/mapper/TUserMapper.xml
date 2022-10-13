@@ -7,4 +7,16 @@
     <select id="getByTel" resultType="com.example.jiuzhou.user.model.TUser">
         select * from TUser where tel=#{tel}
     </select>
+    <select id="getByUid" resultType="com.example.jiuzhou.user.model.TUser">
+        select * from TUser where u_id=#{uid}
+    </select>
+    <select id="getByCarNumber" resultType="com.example.jiuzhou.user.model.TUser">
+        select * from TUser where CarNumber1=#{plateNumber} or CarNumber2=#{plateNumber} or CarNumber3=#{plateNumber}
+    </select>
+    <select id="getByOpenId" resultType="com.example.jiuzhou.user.model.TUser">
+        select * from TUser where openId=#{openId}
+    </select>
+    <select id="getByUserId" resultType="com.example.jiuzhou.user.model.TUser">
+        select * from TUser where userId=#{userId}
+    </select>
 </mapper>

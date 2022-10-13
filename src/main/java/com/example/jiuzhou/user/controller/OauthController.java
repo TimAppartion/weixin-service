@@ -1,13 +1,18 @@
 package com.example.jiuzhou.user.controller;
 
+import com.alibaba.fastjson.JSONObject;
 import com.example.jiuzhou.common.Enum.ResultEnum;
 import com.example.jiuzhou.common.utils.Result;
 import com.example.jiuzhou.common.utils.SubMailUtils;
 import com.example.jiuzhou.user.mapper.AbpWeixinConfigMapper;
+import com.example.jiuzhou.user.mapper.TUserMapper;
 import com.example.jiuzhou.user.model.AbpWeixinConfig;
+import com.example.jiuzhou.user.model.TUser;
 import com.example.jiuzhou.user.query.OauthQuery;
 import com.example.jiuzhou.user.service.WeiXinOauthService;
 import com.example.jiuzhou.user.service.ZhiFuBaoService;
+import com.jfinal.kit.Prop;
+import com.jfinal.kit.PropKit;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +25,8 @@ import tk.mybatis.mapper.entity.Example;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.time.Duration;
+import java.util.Date;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @RestController
@@ -32,23 +39,27 @@ public class OauthController {
     private ZhiFuBaoService zhiFuBaoService;
 
     @Autowired
-    private RedisTemplate<Object,Object> redisTemplate;
+    private RedisTemplate redisTemplate;
 
+    @Resource
+    private TUserMapper tUserMapper;
     @Resource
     private AbpWeixinConfigMapper abpWeixinConfigMapper;
 
-    @Value("${WeiXin.TenantId}")
-    private static Integer TENANTID;
+    private static final Prop prop = PropKit.use("weixin.properties");
+    private static Integer TENANTID=Integer.valueOf(prop.get("tenantId"));
 
     @PostConstruct
     public void startInit(){
+        log.info("————————————系统初始化添加信息进缓存开始——————————————");
         Example example = new Example(AbpWeixinConfig.class);
         Example.Criteria criteria = example.createCriteria();
-        criteria.andEqualTo("TenantId", 1).andEqualTo("Token","yctc");
+        criteria.andEqualTo("TenantId", 1);
         AbpWeixinConfig config = abpWeixinConfigMapper.selectByExample(example).get(0);
-        redisTemplate.opsForHash().hasKey("config",config);
+        redisTemplate.opsForValue().set("config",JSONObject.toJSONString(config));
+        log.info("————————————系统初始化添加信息进缓存结束——————————————");
+        AbpWeixinConfig config1=JSONObject.parseObject(redisTemplate.opsForValue().get("config").toString(),AbpWeixinConfig.class);
     }
-
     @PostMapping("/WeiXinIndex")
     public Result<?> WeiXinIndex(@RequestBody OauthQuery query){
         log.info("微信授权信息:{}",query);
@@ -86,8 +97,8 @@ public class OauthController {
         if (res_code != 0) {
             return Result.error(ResultEnum.ERROR,"短信发送失败");
         }
-        // 验证码放入缓存
-        redisTemplate.opsForValue().set(query.getMobile(), query.getCode(), Duration.ofSeconds(60 * 5 + 5));
+        // redis因为用的@Autowired注入的导致需要对录入的参数做序列化处理
+        redisTemplate.opsForValue().set(query.getMobile().toString(), code,5,TimeUnit.MINUTES);
         return Result.success("短信发送成功");
     }
 

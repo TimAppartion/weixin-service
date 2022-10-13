@@ -5,6 +5,7 @@ import lombok.Data;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.persistence.Column;
+import javax.persistence.Table;
 import java.math.BigDecimal;
 import java.util.Date;
 
@@ -14,6 +15,7 @@ import java.util.Date;
  * 一入代码深似海，从此生活是路人
  */
 @Data
+@Table(name = "ExtOtherAccount")
 public class ExtOtherAccount {
     @Column(name="Id")
     private Integer Id;

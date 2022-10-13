@@ -8,6 +8,8 @@ import com.example.jiuzhou.common.Enum.ResultEnum;
 import com.example.jiuzhou.common.utils.Result;
 import com.example.jiuzhou.user.query.OauthQuery;
 import com.example.jiuzhou.user.service.ZhiFuBaoService;
+import com.jfinal.kit.Prop;
+import com.jfinal.kit.PropKit;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -15,26 +17,15 @@ import org.springframework.stereotype.Service;
 @Service
 @Slf4j
 public class ZhiFuBaoServiceImpl implements ZhiFuBaoService {
-    @Value("${ZhiFuBao.app_id}")
-    private static String APP_ID;
 
-    @Value("${ZhiFuBao.app_private_key}")
-    private static String APP_PRIVATE_KEY;
-
-    @Value("${ZhiFuBao.app_public_key}")
-    private static String APP_PUBLIC_KEY;
-
-    @Value("${ZhiFuBao.charset}")
-    private static String CHARSEt;
-
-    @Value("${ZhiFuBao.app_url}")
-    private static String APP_URL;
-
-    @Value("${ZhiFuBao.notify_url}")
-    private static String NOTIFY_URL;
-
-    @Value("${ZhiFuBao.return_url}")
-    private static String RETURN_URL;
+    private static final Prop prop = PropKit.use("zfb.properties");
+    private static String APP_ID=prop.get("app_id");
+    private static String APP_PRIVATE_KEY=prop.get("app_private_key");
+    private static String APP_PUBLIC_KEY=prop.get("app_public_key");
+    private static String CHARSEt=prop.get("charset");
+    private static String APP_URL=prop.get("app_url");
+    private static String NOTIFY_URL=prop.get("notify_url");
+    private static String RETURN_URL=prop.get("return_url");
 
 
     @Override

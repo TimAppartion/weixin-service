@@ -41,8 +41,7 @@ public class SubMailUtils {
     //会员注册通知：昵称:@,联系方式:@
     private static final String CONTENT_REGISTER_NOTIFY = prop.get("content_register_notify");
 
-    @Value("${WeiXin.appName}")
-    private static String APPNAME;
+    private static String APPNAME= prop.get("app_name");
 
     public static Integer sendMsg(Integer type,String to,String code,String name,String tel){
         String content="";
