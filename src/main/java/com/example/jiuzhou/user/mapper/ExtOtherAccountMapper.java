@@ -10,5 +10,10 @@ import tk.mybatis.mapper.common.Mapper;
  * 一入代码深似海，从此生活是路人
  */
 public interface ExtOtherAccountMapper extends Mapper<ExtOtherAccount> {
+    Integer  insetOne(@Param("query")ExtOtherAccount account);
+
     ExtOtherAccount getByUid(@Param("uid") String uid);
+
+
+    ExtOtherAccount getByCardNo(@Param("CardNo") String CardNo);
 }

@@ -36,7 +36,7 @@ public class MineController {
      * @return
      */
     @RequestMapping("/CarList")
-    public Result<?> CarList(@Validated @ModelAttribute String uid){
+    public Result<?> CarList(@RequestParam(value = "uid", required = false) String uid){
         if(StringUtils.isEmpty(uid)){
             return Result.error(ResultEnum.MISS_DATA);
         }
@@ -68,11 +68,41 @@ public class MineController {
         }
         return mineService.relievePlatNumber(query);
     }
+
+    /**
+     * 用户个人信息
+     * @param uid
+     * @return
+     */
     @RequestMapping("/UserInfo")
-    public Result<?> userInfo (@Validated @ModelAttribute String uid){
+    public Result<?> userInfo (@RequestParam(value = "uid", required = false) String uid){
         if(StringUtils.isEmpty(uid)){
             return Result.error(ResultEnum.MISS_DATA);
         }
-        return Result.success();
+        return mineService.userInfo(uid);
     }
+
+    /**
+     * 查询个人月卡信息
+     * @param uid
+     * @return
+     */
+    @RequestMapping("/MonthCad")
+    public Result<?> monthCad(@RequestParam(value = "uid", required = false) String uid){
+        return mineService.monthCad(uid);
+    }
+
+    /**
+     * 月卡详情
+     * @param parkType
+     * @return
+     */
+    @RequestMapping("/getMonthlyCardDetail")
+    public Result<?> getMonthlyCardDetail(@RequestParam(value = "parkType", required = false)String parkType){
+        if(StringUtils.isEmpty(parkType)){
+            return Result.error(ResultEnum.MISS_DATA);
+        }
+        return mineService.getMonthlyCardDetail(parkType);
+    }
+
 }

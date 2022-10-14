@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.jiuzhou.user.mapper.AbpMonthlyCarsMapper">
+    <select id="monthCad" resultType="com.example.jiuzhou.user.view.MonthCarsView">
+        SELECT
+        b.*,
+        c.ParkType,
+        ISNULL(c.ParkName, '不限路段') as ParkName
+        from AbpMonthlyCars b
+        left join  WeixinTuser a on (a.CarNumber1 = b.PlateNumber or a.CarNumber2 = b.PlateNumber or a.CarNumber3 = b.PlateNumber)
+        left join AbpParks c on b.ParkIds = c.Id
+        WHERE a.uid = #{uid}
+
+
+    </select>
+</mapper>

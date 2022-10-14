@@ -23,4 +23,27 @@ public interface MineService {
      */
     Result<?> relievePlatNumber(BindCarQuery query);
 
+    /**
+     * 用户个人信息
+     * @param uid
+     * @return
+     */
+    Result<?> userInfo(String uid);
+
+    /**
+     * 个人月卡信息
+     * @param uid
+     * @return
+     */
+    Result<?> monthCad(String uid);
+
+    /**
+     * 获取月卡详细
+     * @param parkType
+     * @return
+     */
+    Result<?> getMonthlyCardDetail(String parkType);
+
+
+
 }

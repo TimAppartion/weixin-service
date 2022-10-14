@@ -12,6 +12,6 @@
         from TUser a
         left join ExtOtherAccount b on a.tel = b.Telephone
         left join  ExtOtherPlateNumber c on b.Id = c.AssignedOtherAccountId
-        where a.u_id = #{uid}
+        where a.uid = #{uid}
     </select>
 </mapper>

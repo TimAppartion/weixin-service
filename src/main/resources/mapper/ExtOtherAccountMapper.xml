@@ -4,8 +4,17 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.example.jiuzhou.user.mapper.ExtOtherAccountMapper">
+    <insert id="insetOne" parameterType="com.example.jiuzhou.user.model.ExtOtherAccount">
+        INSERT INTO ExtOtherAccount  
+        ( IsEnabled,EnabledTime,EnabledUserId,CompanyId,AuthenticationSource,CardNo,ProductNo,Wallet,Client,UserName,Name,Password,TelePhone,IsPhoneConfirmed,AccountLoginDatetime,IsActive,IsLock,PhoneCode,CodeTime,CreatorUserId,CreationTime,LastModificationTime,LastModifierUserId,DeleterUserId,DeletionTime,IsDeleted,TenantId,SendSmsDatetime,SendSmsNumber,AutoDeduction,uid )
+        VALUES( #{query.IsEnabled},#{query.EnabledTime},#{query.EnabledUserId},#{query.CompanyId},#{query.AuthenticationSource},#{query.CardNo} ,#{query.ProductNo} ,#{query.Wallet} ,#{query.Client} ,#{query.UserName} ,#{query.Name} ,#{query.Password} ,#{query.TelePhone} ,#{query.IsPhoneConfirmed} ,#{query.AccountLoginDatetime} ,#{query.IsActive} ,#{query.IsLock} ,#{query.PhoneCode} ,#{query.CodeTime} ,#{query.CreatorUserId} ,#{query.CreationTime} ,#{query.LastModificationTime},#{query.LastModifierUserId} ,#{query.DeleterUserId} ,#{query.DeletionTime} ,#{query.IsDeleted} ,#{query.TenantId} ,#{query.SendSmsDatetime} ,#{query.SendSmsNumber} ,#{query.AutoDeduction} ,#{query.uid } )
+    </insert>
 
     <select id="getByUid" resultType="com.example.jiuzhou.user.model.ExtOtherAccount">
-        select * from ExtOtherAccount where u_id = #{uid}
+        select * from ExtOtherAccount where uid = #{uid}
+    </select>
+
+    <select id="getByCardNo" resultType="com.example.jiuzhou.user.model.ExtOtherAccount">
+        select * from ExtOtherAccount where CardNo = #{CardNo}
     </select>
 </mapper>

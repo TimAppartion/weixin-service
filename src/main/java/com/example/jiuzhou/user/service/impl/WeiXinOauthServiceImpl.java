@@ -94,7 +94,7 @@ public class WeiXinOauthServiceImpl implements WeiXinOauthService {
             newUser.setSex(jsonObject.getIntValue("sex"));
             newUser.setHeadImgUrl(jsonObject.getString("headimgurl"));
             newUser.setTenantId(TENANTID);
-            newUser.setUId(UUID.randomUUID().toString().replace("-",""));
+            newUser.setUid(UUID.randomUUID().toString().replace("-",""));
             newUser.setRegisterDate(new Date());
             newUser.setLevels(1);
             newUser.setSendWeixinNumber(0);
@@ -106,12 +106,10 @@ public class WeiXinOauthServiceImpl implements WeiXinOauthService {
     }
 
     @Override
-    @Transactional(rollbackFor = Exception.class)
     public Result<?> bindPhone(OauthQuery query) {
-        TUser tUser=tUserMapper.getByTel(query.getMobile());
+        TUser tUser=tUserMapper.getByUid(query.getUid());
         if(null!=tUser){
-            tUser.setOpenId(query.getOpenId());
-            tUser.setUserId(query.getUserId());
+            tUser.setTel(query.getMobile());
             tUserMapper.updateByPrimaryKey(tUser);
             createAccount(query.getMobile());
             return Result.success(tUser);
@@ -125,7 +123,6 @@ public class WeiXinOauthServiceImpl implements WeiXinOauthService {
      * @param mobile
      */
     private void createAccount(String mobile){
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         //取系统配置信息
         AbpWeixinConfig config=JSONObject.parseObject(redisTemplate.opsForValue().get("config").toString(),AbpWeixinConfig.class);
 
@@ -133,7 +130,10 @@ public class WeiXinOauthServiceImpl implements WeiXinOauthService {
         TUser tUser=tUserMapper.getByTel(mobile);
 
         String carNo=UUID.randomUUID().toString().replace("-", "").substring(0, 20);
-        if(tUser!=null){
+
+        ExtOtherAccount a=extOtherAccountMapper.getByUid(tUser.getUid());
+        //有用户并且没开通过卡
+        if(tUser!=null&&a==null){
             //开通储值卡
             ExtOtherAccount extOtherAccount=new ExtOtherAccount();
             extOtherAccount.setAuthenticationSource("WeiXin");
@@ -152,11 +152,16 @@ public class WeiXinOauthServiceImpl implements WeiXinOauthService {
             extOtherAccount.setProductNo(mobile);
             extOtherAccount.setCompanyId(TENANTID);
             extOtherAccount.setIsPhoneConfirmed(1);
-            extOtherAccount.setUId(tUser.getUId());
-            extOtherAccountMapper.insert(extOtherAccount);
+            extOtherAccount.setUid(tUser.getUid());
+            extOtherAccount.setAccountLoginDatetime(new Date());
+            extOtherAccount.setCreationTime(new Date());
+            extOtherAccount.setSendSmsDatetime(new Date());
+            extOtherAccount.setSendSmsNumber(0);
+            extOtherAccountMapper.insetOne(extOtherAccount);
+            ExtOtherAccount account=extOtherAccountMapper.getByCardNo(carNo);
             //开通记录
             AbpDeductionRecords abpDeductionRecords=new AbpDeductionRecords();
-            abpDeductionRecords.setOtherAccountId(extOtherAccount.getId());
+            abpDeductionRecords.setOtherAccountId(account.getId());
             abpDeductionRecords.setOperType(1);
             abpDeductionRecords.setMoney(new BigDecimal(0));
             abpDeductionRecords.setPayStatus(1);
@@ -168,7 +173,8 @@ public class WeiXinOauthServiceImpl implements WeiXinOauthService {
             abpDeductionRecords.setCardNo(carNo);
             abpDeductionRecords.setBeginMoney(new BigDecimal(0));
             abpDeductionRecords.setEndMoney(new BigDecimal(0));
-            abpDeductionRecordsMapper.insert(abpDeductionRecords);
+            abpDeductionRecords.setInTime(new Date());
+            abpDeductionRecordsMapper.insetOne(abpDeductionRecords);
         }
     }
 }

@@ -8,5 +8,6 @@ public class OauthQuery {
     private String mobile;
     private String openId;
     private String userId;
+    private String uid;
     private Integer smsType;
 }

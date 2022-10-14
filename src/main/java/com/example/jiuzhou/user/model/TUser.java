@@ -16,11 +16,10 @@ public class TUser {
     @Id
     @GeneratedValue(generator = "JDBC" ,strategy = GenerationType.IDENTITY)
     @Column(name="Id")
-    @Transient
     private Integer Id;
 
-    @Column(name="u_id")
-    private String UId;
+    @Column(name="uid")
+    private String uid;
 
     @Column(name="TenantId")
     private Integer TenantId;
@@ -108,6 +107,6 @@ public class TUser {
     @Column(name="birthday")
     private String birthday;
 
-    @Column(name = "head_img_url")
+    @Column(name = "headImgUrl")
     private String headImgUrl;
 }

@@ -16,7 +16,7 @@ import java.util.List;
 
 @Slf4j
 @RestController
-@RequestMapping("/weixin_guide/Coupons")
+@RequestMapping("/Coupons")
 @ResponseBody
 public class CouponsController {
     @Autowired
@@ -34,7 +34,7 @@ public class CouponsController {
 
     @PostMapping("/getCouponsList")
     public Result<?> getCouponsList(@RequestBody CouponsQuery query){
-        if(StringUtils.isEmpty(query.getUserId())){
+        if(StringUtils.isEmpty(query.getUid())){
             return  Result.error(ResultEnum.MISS_DATA,"用户id不可为空");
         }
         if(StringUtils.isNotEmpty(query.getFee())){

@@ -5,5 +5,12 @@
 
 <mapper namespace="com.example.jiuzhou.user.mapper.AbpDeductionRecordsMapper">
 
+    <insert id="insetOne">
+        INSERT INTO AbpDeductionRecords
+        ( OtherAccountId,OperType,Money,PayStatus,InTime,Remark,CardNo,EmployeeId,UserId,PlateNumber,TenantId,CompanyId,BeginMoney,EndMoney )
+        VALUES
+        ( #{query.OtherAccountId},#{query.OperType},#{query.Money},#{query.PayStatus},#{query.InTime},#{query.Remark},#{query.CardNo},
+        #{query.EmployeeId},#{query.UserId},#{query.PlateNumber},#{query.TenantId},#{query.CompanyId},#{query.BeginMoney},#{query.EndMoney})
+    </insert>
 </mapper>
 

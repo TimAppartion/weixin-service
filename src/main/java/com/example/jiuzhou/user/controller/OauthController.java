@@ -58,7 +58,7 @@ public class OauthController {
         AbpWeixinConfig config = abpWeixinConfigMapper.selectByExample(example).get(0);
         redisTemplate.opsForValue().set("config",JSONObject.toJSONString(config));
         log.info("————————————系统初始化添加信息进缓存结束——————————————");
-        AbpWeixinConfig config1=JSONObject.parseObject(redisTemplate.opsForValue().get("config").toString(),AbpWeixinConfig.class);
+//        AbpWeixinConfig config1=JSONObject.parseObject(redisTemplate.opsForValue().get("config").toString(),AbpWeixinConfig.class);
     }
     @PostMapping("/WeiXinIndex")
     public Result<?> WeiXinIndex(@RequestBody OauthQuery query){
@@ -107,8 +107,11 @@ public class OauthController {
         if(StringUtils.isEmpty(query.getMobile())){
             return Result.error(ResultEnum.MISS_DATA);
         }
+        if(StringUtils.isEmpty(query.getUid())){
+            return Result.error(ResultEnum.MISS_DATA);
+        }
         if(StringUtils.isEmpty(query.getCode())){
-            return Result.error(ResultEnum.ERROR,"验证码不可为空");
+            return Result.error(ResultEnum.ERROR,"验证码错误");
         }
         if(!mobileCodeEquals(query.getMobile(),query.getCode())){
             return Result.error(ResultEnum.ERROR,"验证码输入错误,请重新输入！");
@@ -123,9 +126,12 @@ public class OauthController {
      */
     public boolean mobileCodeEquals(String tel, String code) {
         // 判断手机验证码是否正确
-        String cache_code =redisTemplate.opsForValue().get(tel).toString();
+        Object cache_code =redisTemplate.opsForValue().get(tel);
+        if(cache_code==null){
+            return false;
+        }
         log.info("cache_code:" + cache_code + "tel_code:" + code);
-        if (null == cache_code || !code.equals(cache_code)) {
+        if (!code.equals(cache_code.toString())) {
             return false;
         } else {
             // 如果相同则移除该手机验证码缓存

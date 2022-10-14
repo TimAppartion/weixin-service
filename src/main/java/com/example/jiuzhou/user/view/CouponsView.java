@@ -42,7 +42,7 @@ public class CouponsView {
 
     private Integer planeStatus;
 
-    private String UId;
+    private String uid;
 
     private Integer couponsType;
     

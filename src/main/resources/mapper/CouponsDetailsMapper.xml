@@ -29,12 +29,12 @@
             cp.Type,
             cp.TermMoney,
             cp.Status as PlaneStatus,
-            cd.UId,
+            cd.uid,
             cp.CouponsType
         FROM CouponsDetails cd
         LEFT JOIN CouponsPlan cp ON cp.Id= cd.PlanId
         WHERE
-            cd.UId=#{query.userId}
+            cd.uid=#{query.userId}
         <if test="query.status!=null and query.status!=''">
             and cd.Status=#{query.status}
         </if>

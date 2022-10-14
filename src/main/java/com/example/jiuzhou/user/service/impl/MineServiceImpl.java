@@ -1,27 +1,29 @@
 package com.example.jiuzhou.user.service.impl;
 
 import com.example.jiuzhou.common.Enum.ResultEnum;
+import com.example.jiuzhou.common.utils.ModelUtils;
 import com.example.jiuzhou.common.utils.Result;
-import com.example.jiuzhou.user.mapper.ExtOtherAccountMapper;
-import com.example.jiuzhou.user.mapper.ExtOtherPlateNumberMapper;
-import com.example.jiuzhou.user.mapper.TUserMapper;
-import com.example.jiuzhou.user.model.ExtOtherAccount;
-import com.example.jiuzhou.user.model.ExtOtherPlateNumber;
-import com.example.jiuzhou.user.model.TUser;
+import com.example.jiuzhou.user.mapper.*;
+import com.example.jiuzhou.user.model.*;
 import com.example.jiuzhou.user.query.BindCarQuery;
 import com.example.jiuzhou.user.service.MineService;
+import com.example.jiuzhou.user.view.MonthCarsView;
 import com.jfinal.kit.Prop;
 import com.jfinal.kit.PropKit;
 import lombok.extern.slf4j.Slf4j;
 
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
+import tk.mybatis.mapper.entity.Example;
 
 import javax.annotation.Resource;
-import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author Appartion
@@ -41,14 +43,26 @@ public class MineServiceImpl implements MineService {
     private ExtOtherAccountMapper extOtherAccountMapper;
     @Resource
     private ExtOtherPlateNumberMapper extOtherPlateNumberMapper;
+    @Resource
+    private AbpMonthlyCarsMapper abpMonthlyCarsMapper;
+    @Resource
+    private MonthRuleMapper monthRuleMapper;
+    @Resource
+    private AbpDictionaryValueMapper abpDictionaryValueMapper;
+
+    @Autowired
+    private RedisTemplate redisTemplate;
 
     @Override
     public Result<?> saveBingCarNumber(BindCarQuery query) {
         TUser tUser=tUserMapper.getByCarNumber(query.getPlateNumber());
-        if(ObjectUtils.isEmpty(tUser)){
+        if(tUser!=null){
             return Result.error(ResultEnum.ERROR,"车辆已被绑定");
         }
         ExtOtherAccount account = extOtherAccountMapper.getByUid(query.getUid());
+        if(account==null){
+            return Result.error(ResultEnum.ERROR,"没有生成账号，请重新绑定手机");
+        }
         if(updateCarNumber(query.getPlateNumber(), query.getUid())){
             ExtOtherPlateNumber extOtherPlateNumber=new ExtOtherPlateNumber();
             extOtherPlateNumber.setAuthentication(account.getId());
@@ -75,8 +89,59 @@ public class MineServiceImpl implements MineService {
             tUser.setCarNumber2(null);
         }else if(!StringUtils.isEmpty(tUser.getCarNumber3())&&tUser.getCarNumber3().equals(query.getPlateNumber())) {
             tUser.setCarNumber3(null);
+        }else{
+            return Result.error(ResultEnum.ERROR,"未绑定【"+query.getPlateNumber()+"】车牌");
+        }
+        try {
+            //先删除用户信息中车牌
+            tUserMapper.updateByPrimaryKey(tUser);
+            //删除管理表车牌信息
+            ExtOtherAccount extOtherAccount = extOtherAccountMapper.getByUid(query.getUid());
+            Example example = new Example(ExtOtherPlateNumber.class);
+            Example.Criteria criteria = example.createCriteria();
+            criteria.andEqualTo("AssignedOtherAccountId", extOtherAccount.getId()).andEqualTo("PlateNumber", query.getPlateNumber());
+            extOtherPlateNumberMapper.deleteByExample(example);
+        }catch (Exception e){
+            log.error("解绑失败:{}",query);
+            e.printStackTrace();
+            return Result.error(ResultEnum.ERROR , "解绑失败");
         }
         return Result.success();
+    }
+
+    @Override
+    public Result<?> userInfo(String uid) {
+        TUser tUser=tUserMapper.getByUid(uid);
+        Map<String ,Object> map=new HashMap<>();
+        if(tUser!=null){
+            List<MonthCarsView> monthlyCars=abpMonthlyCarsMapper.monthCad(uid);
+            map=ModelUtils.modelToMap(tUser);
+            map.put("monthCad",monthlyCars.size());
+        }else {
+            return Result.error(ResultEnum.ERROR,"查询用户信息失败");
+        }
+        return Result.success(map);
+    }
+
+    @Override
+    public Result<?> monthCad(String uid) {
+        List<MonthCarsView> monthlyCars=abpMonthlyCarsMapper.monthCad(uid);
+        return Result.success(monthlyCars);
+    }
+
+    @Override
+    public Result<?> getMonthlyCardDetail(String parkType) {
+
+        List<MonthRule> monthRuleList=monthRuleMapper.getMonthRuleByParkType(parkType);
+
+        Example example2 = new Example(AbpDictionaryValue.class);
+        Example.Criteria criteria2 = example2.createCriteria();
+        criteria2.andEqualTo("TenantId", TENANTID).andEqualTo("TypeCode", "A10022").andEqualTo("IsActive", "1");
+        List<AbpDictionaryValue> abpDictionaryValueList=abpDictionaryValueMapper.selectByExample(example2);
+        Map<String,Object> map=new HashMap<>();
+        map.put("rule",monthRuleList);
+        map.put("monthType",abpDictionaryValueList);
+        return Result.success(map);
     }
 
     public boolean updateCarNumber(String plateNumber,String uid){

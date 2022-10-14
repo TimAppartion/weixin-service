@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.jiuzhou.user.mapper.MonthRuleMapper">
+    <select id="getMonthRuleByParkType" resultType="com.example.jiuzhou.user.model.MonthRule">
+        SELECT
+            A.id,
+            A.parkId,
+            A.parkName,
+            A.monthMoney,
+            A.yearMoney
+        FROM MonthRule  A
+        INNER JOIN AbpParks  B ON A.ParkId = B.Id  AND A.IsActive = 1  AND B.IsDeleted = 0 AND B.TenantId = 1 AND B.CompanyId = 1 AND B.ParkType= #{parkType}
+        Union
+        SELECT
+            id,
+            parkId,
+            parkName,
+            monthMoney,
+            yearMoney
+        FROM MonthRule
+        WHERE ParkId = 0  AND IsActive = 1
+        ORDER BY
+        ParkId
+    </select>
+</mapper>

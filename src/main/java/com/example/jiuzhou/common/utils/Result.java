@@ -47,7 +47,7 @@ public class Result<T> {
     }
 
     public static <T> Result<T> success(T data) {
-        Result<T> result = new Result<>(data);
+        Result<T> result = data!=null? new Result<>(data): new Result<>();
         result.setCode(200);
         result.setMsg("成功");
         return result;

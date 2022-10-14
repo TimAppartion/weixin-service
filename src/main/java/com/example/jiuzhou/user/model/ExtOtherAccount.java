@@ -5,6 +5,7 @@ import lombok.Data;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.persistence.Column;
+import javax.persistence.Id;
 import javax.persistence.Table;
 import java.math.BigDecimal;
 import java.util.Date;
@@ -17,6 +18,7 @@ import java.util.Date;
 @Data
 @Table(name = "ExtOtherAccount")
 public class ExtOtherAccount {
+    @Id
     @Column(name="Id")
     private Integer Id;
 
@@ -124,6 +126,6 @@ public class ExtOtherAccount {
     @Column(name="AutoDeduction")
     private Integer AutoDeduction;
 
-    @Column(name="u_id")
-    private String uId;
+    @Column(name="uid")
+    private String uid;
 }
