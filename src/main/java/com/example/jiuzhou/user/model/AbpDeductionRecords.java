@@ -10,6 +10,7 @@ import java.math.BigDecimal;
 import java.util.Date;
 
 /**
+ * 缴费记录表
  * @author Appartion
  * @data 2022/10/12
  * 一入代码深似海，从此生活是路人

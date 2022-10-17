@@ -7,7 +7,7 @@ import com.example.jiuzhou.common.utils.SubMailUtils;
 import com.example.jiuzhou.user.mapper.AbpWeixinConfigMapper;
 import com.example.jiuzhou.user.mapper.TUserMapper;
 import com.example.jiuzhou.user.model.AbpWeixinConfig;
-import com.example.jiuzhou.user.model.TUser;
+
 import com.example.jiuzhou.user.query.OauthQuery;
 import com.example.jiuzhou.user.service.WeiXinOauthService;
 import com.example.jiuzhou.user.service.ZhiFuBaoService;
@@ -16,7 +16,7 @@ import com.jfinal.kit.PropKit;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
+
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -24,8 +24,7 @@ import tk.mybatis.mapper.entity.Example;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
-import java.time.Duration;
-import java.util.Date;
+
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -64,9 +63,6 @@ public class OauthController {
     public Result<?> WeiXinIndex(@RequestBody OauthQuery query){
         log.info("微信授权信息:{}",query);
         if(StringUtils.isEmpty(query.getCode())){
-            return Result.error(ResultEnum.MISS_DATA);
-        }
-        if(StringUtils.isEmpty(query.getMobile())){
             return Result.error(ResultEnum.MISS_DATA);
         }
         return weiXinOauthService.index(query);

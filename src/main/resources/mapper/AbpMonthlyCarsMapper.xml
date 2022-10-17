@@ -10,10 +10,20 @@
         c.ParkType,
         ISNULL(c.ParkName, '不限路段') as ParkName
         from AbpMonthlyCars b
-        left join  WeixinTuser a on (a.CarNumber1 = b.PlateNumber or a.CarNumber2 = b.PlateNumber or a.CarNumber3 = b.PlateNumber)
+        left join  TUser a on (a.CarNumber1 = b.PlateNumber or a.CarNumber2 = b.PlateNumber or a.CarNumber3 = b.PlateNumber)
         left join AbpParks c on b.ParkIds = c.Id
         WHERE a.uid = #{uid}
 
 
+    </select>
+    <select id="getByPlateNumber" resultType="com.example.jiuzhou.user.model.AbpMonthlyCars">
+        select
+            *
+        from AbpMonthlyCars
+        where
+        TenantId = #{tenantId}
+        and CompanyId = #{tenantId}
+        and IsDeleted = 0
+        and PlateNumber = #{plateNumber}
     </select>
 </mapper>

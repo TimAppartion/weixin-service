@@ -23,13 +23,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
-import org.springframework.transaction.annotation.Transactional;
-import tk.mybatis.mapper.entity.Example;
+
+
 
 import javax.annotation.Resource;
-import java.beans.Transient;
+
 import java.math.BigDecimal;
-import java.text.SimpleDateFormat;
+
 import java.util.Date;
 import java.util.UUID;
 
@@ -98,7 +98,7 @@ public class WeiXinOauthServiceImpl implements WeiXinOauthService {
             newUser.setRegisterDate(new Date());
             newUser.setLevels(1);
             newUser.setSendWeixinNumber(0);
-            tUserMapper.insert(newUser);
+            tUserMapper.insetOne(newUser);
             return Result.success(newUser);
         }
         return Result.error(ResultEnum.ERROR,"没有用户信息");

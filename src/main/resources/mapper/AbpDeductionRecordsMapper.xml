@@ -12,5 +12,21 @@
         ( #{query.OtherAccountId},#{query.OperType},#{query.Money},#{query.PayStatus},#{query.InTime},#{query.Remark},#{query.CardNo},
         #{query.EmployeeId},#{query.UserId},#{query.PlateNumber},#{query.TenantId},#{query.CompanyId},#{query.BeginMoney},#{query.EndMoney})
     </insert>
+    <select id="getOrderList" resultType="com.example.jiuzhou.user.model.AbpDeductionRecords">
+        select
+            a.*
+        from  AbpDeductionRecords a
+        left join ExtOtherAccount b on a.OtherAccountId = b.Id
+        left join TUser c on c.uid = b.uid
+        where
+        c.uid=#{query.uid}
+        <if test="query.startTime!=null and query.startTime!=''">
+            and a.InTime>= #{query.startTime}
+        </if>
+        <if test="query.endTime!=null and query.endTime!=''">
+            and a.InTime &lt;= #{query.endTime}
+        </if>
+        order By id desc
+    </select>
 </mapper>
 

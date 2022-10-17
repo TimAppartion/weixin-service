@@ -4,6 +4,11 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.example.jiuzhou.user.mapper.TUserMapper">
+    <insert id="insetOne">
+        INSERT INTO TUser
+        ( uid,TenantId,nickName,email,tel,qq,password,password2,openId,userId,remember,registerDate,lastLoginDate,levels,CarNumber1,Model1,CarNumber2,Model2,CarNumber3,Model3,SendWeixinDatetime,SendWeixinNumber,CertificateType,Card,CertificateImg,CertificateReversesImg,CarPhone,sex,birthday,headImgUrl )
+        VALUES( #{query.uid},#{query.TenantId},#{query.nickName},#{query.email},#{query.tel},#{query.qq},#{query.password},#{query.password2},#{query.openId},#{query.userId},#{query.remember},#{query.registerDate},#{query.lastLoginDate},#{query.levels},#{query.CarNumber1},#{query.Model1},#{query.CarNumber2},#{query.Model2},#{query.CarNumber3},#{query.Model3},#{query.SendWeixinDatetime},#{query.SendWeixinNumber},#{query.CertificateType},#{query.Card},#{query.CertificateImg},#{query.CertificateReversesImg},#{query.CarPhone},#{query.sex},#{query.birthday},#{query.headImgUrl} )
+    </insert>
     <select id="getByTel" resultType="com.example.jiuzhou.user.model.TUser">
         select * from TUser where tel=#{tel}
     </select>
@@ -18,5 +23,23 @@
     </select>
     <select id="getByUserId" resultType="com.example.jiuzhou.user.model.TUser">
         select * from TUser where userId=#{userId}
+    </select>
+    <select id="getUserInfo" resultType="com.example.jiuzhou.user.view.UserInfoView">
+        select
+            a.Id,
+            a.uid,
+            a.openId,
+            a.userId,
+            a.headImgUrl,
+            a.NickName,
+            a.tel,
+            a.sex,
+            a.birthday,
+            b.Wallet,
+            c.Coupon
+        from TUser a
+        LEFT JOIN  ExtOtherAccount b on a.uid = b.uid
+        LEFT JOIN (SELECT uid, COUNT ( * ) Coupon FROM CouponsDetails WHERE Status=1 GROUP  BY uid) c ON a.uid = c.uid
+        where a.uid = #{uid}
     </select>
 </mapper>

@@ -6,8 +6,12 @@ import com.example.jiuzhou.common.utils.Result;
 import com.example.jiuzhou.user.mapper.*;
 import com.example.jiuzhou.user.model.*;
 import com.example.jiuzhou.user.query.BindCarQuery;
+import com.example.jiuzhou.user.query.OrderQuery;
 import com.example.jiuzhou.user.service.MineService;
 import com.example.jiuzhou.user.view.MonthCarsView;
+import com.example.jiuzhou.user.view.UserInfoView;
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
 import com.jfinal.kit.Prop;
 import com.jfinal.kit.PropKit;
 import lombok.extern.slf4j.Slf4j;
@@ -49,6 +53,9 @@ public class MineServiceImpl implements MineService {
     private MonthRuleMapper monthRuleMapper;
     @Resource
     private AbpDictionaryValueMapper abpDictionaryValueMapper;
+
+    @Resource
+    private AbpDeductionRecordsMapper abpDeductionRecordsMapper;
 
     @Autowired
     private RedisTemplate redisTemplate;
@@ -111,16 +118,14 @@ public class MineServiceImpl implements MineService {
 
     @Override
     public Result<?> userInfo(String uid) {
-        TUser tUser=tUserMapper.getByUid(uid);
-        Map<String ,Object> map=new HashMap<>();
+        UserInfoView tUser=tUserMapper.getUserInfo(uid);
         if(tUser!=null){
             List<MonthCarsView> monthlyCars=abpMonthlyCarsMapper.monthCad(uid);
-            map=ModelUtils.modelToMap(tUser);
-            map.put("monthCad",monthlyCars.size());
+            tUser.setMonthCard(monthlyCars.size());
         }else {
             return Result.error(ResultEnum.ERROR,"查询用户信息失败");
         }
-        return Result.success(map);
+        return Result.success(tUser);
     }
 
     @Override
@@ -142,6 +147,13 @@ public class MineServiceImpl implements MineService {
         map.put("rule",monthRuleList);
         map.put("monthType",abpDictionaryValueList);
         return Result.success(map);
+    }
+
+    @Override
+    public Result<?> orderList(OrderQuery query) {
+        PageHelper.startPage(query.getPageNumber(), query.getPageSize());
+        List<AbpDeductionRecords> list=abpDeductionRecordsMapper.getOrderList(query);
+        return Result.success(new PageInfo (list));
     }
 
     public boolean updateCarNumber(String plateNumber,String uid){

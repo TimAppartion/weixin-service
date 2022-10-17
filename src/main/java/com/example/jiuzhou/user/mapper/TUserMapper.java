@@ -3,6 +3,7 @@ package com.example.jiuzhou.user.mapper;
 
 //import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.example.jiuzhou.user.model.TUser;
+import com.example.jiuzhou.user.view.UserInfoView;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 import tk.mybatis.mapper.common.Mapper;
@@ -12,6 +13,9 @@ import java.util.List;
 
 @Repository
 public interface TUserMapper extends Mapper<TUser> {
+
+    void insetOne(@Param("query")TUser query);
+
     TUser getByTel(@Param("tel")String tel);
 
     TUser getByUid(@Param("uid")String uid);
@@ -21,4 +25,6 @@ public interface TUserMapper extends Mapper<TUser> {
     TUser getByUserId(@Param("userId")String userId);
 
     TUser getByCarNumber(@Param("plateNumber")String plateNumber);
+
+    UserInfoView getUserInfo(String uid);
 }

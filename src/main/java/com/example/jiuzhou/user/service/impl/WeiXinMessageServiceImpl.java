@@ -13,8 +13,10 @@ import com.jfinal.kit.Prop;
 import com.jfinal.kit.PropKit;
 import com.jfinal.weixin.sdk.api.*;
 import com.jfinal.weixin.sdk.utils.HttpUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 
@@ -23,6 +25,8 @@ import javax.annotation.Resource;
  * @data 2022/10/14
  * 一入代码深似海，从此生活是路人
  */
+@Service
+@Slf4j
 public class WeiXinMessageServiceImpl implements WeiXinMessageService {
     private static final Prop prop = PropKit.use("weixin.properties");
     private static Integer TENANTID=Integer.valueOf(prop.get("tenantId"));

@@ -4,12 +4,12 @@ import com.example.jiuzhou.common.Enum.ResultEnum;
 import com.example.jiuzhou.common.utils.Result;
 import com.example.jiuzhou.user.mapper.ExtOtherPlateNumberMapper;
 import com.example.jiuzhou.user.query.BindCarQuery;
+import com.example.jiuzhou.user.query.OrderQuery;
 import com.example.jiuzhou.user.service.MineService;
-import com.jfinal.i18n.Res;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
 
 import javax.annotation.Resource;
 
@@ -103,6 +103,25 @@ public class MineController {
             return Result.error(ResultEnum.MISS_DATA);
         }
         return mineService.getMonthlyCardDetail(parkType);
+    }
+
+    /**
+     * 订单列表
+     * @param query
+     * @return
+     */
+    @PostMapping("/OrderList")
+    public Result<?> orderList (@RequestBody OrderQuery query){
+        if(query.getPageNumber()==null){
+            query.setPageNumber(1);
+        }
+        if(query.getPageSize()==null){
+            query.setPageSize(10);
+        }
+        if(StringUtils.isEmpty(query.getUid())){
+            return Result.error(ResultEnum.MISS_DATA);
+        }
+        return mineService.orderList(query);
     }
 
 }

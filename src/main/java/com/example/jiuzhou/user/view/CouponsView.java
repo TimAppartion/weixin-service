@@ -9,8 +9,8 @@ import java.util.Date;
 
 @Data
 public class CouponsView {
-    private String id;
-    private String planId;
+    private Integer id;
+    private Integer planId;
 
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
@@ -38,7 +38,6 @@ public class CouponsView {
 
     private BigDecimal termMoney;
 
-    private Integer PlaneStatus;
 
     private Integer planeStatus;
 

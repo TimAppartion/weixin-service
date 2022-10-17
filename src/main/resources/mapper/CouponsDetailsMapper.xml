@@ -28,7 +28,7 @@
             cp.Mark,
             cp.Type,
             cp.TermMoney,
-            cp.Status as PlaneStatus,
+            cp.Status as planeStatus,
             cd.uid,
             cp.CouponsType
         FROM CouponsDetails cd
@@ -55,5 +55,26 @@
 <!--            )-->
 <!--        </if>-->
         order by cp.EndTime desc
+    </select>
+    <select id="getDetails" resultType="com.example.jiuzhou.user.view.CouponsView">
+        select
+            cd.Id,
+            cd.PlanId,
+            cd.ProvideTime,
+            cd.Status,
+            cd.UseTime,
+            cp.CouponsMoney,
+            cp.StartTime,
+            cp.EndTime,
+            cp.Mark,
+            cp.Type,
+            cp.TermMoney,
+            cp.Status as planeStatus,
+            cd.uid,
+            cp.CouponsType
+        FROM CouponsDetails cd
+        LEFT JOIN CouponsPlan cp ON cp.Id= cd.PlanId
+        WHERE
+        cd.Id = #{id}
     </select>
 </mapper>

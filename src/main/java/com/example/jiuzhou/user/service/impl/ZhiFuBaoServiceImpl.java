@@ -11,7 +11,7 @@ import com.example.jiuzhou.user.service.ZhiFuBaoService;
 import com.jfinal.kit.Prop;
 import com.jfinal.kit.PropKit;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
+
 import org.springframework.stereotype.Service;
 
 @Service

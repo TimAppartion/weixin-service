@@ -2,6 +2,8 @@ package com.example.jiuzhou.user.service;
 
 import com.example.jiuzhou.common.utils.Result;
 import com.example.jiuzhou.user.query.BindCarQuery;
+import com.example.jiuzhou.user.query.OrderQuery;
+import tk.mybatis.mapper.annotation.Order;
 
 /**
  * @author Appartion
@@ -43,6 +45,13 @@ public interface MineService {
      * @return
      */
     Result<?> getMonthlyCardDetail(String parkType);
+
+    /**
+     * 订单查询
+     * @param query
+     * @return
+     */
+    Result<?> orderList(OrderQuery query);
 
 
 

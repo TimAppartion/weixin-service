@@ -15,4 +15,6 @@ import java.util.List;
 public interface AbpMonthlyCarsMapper extends Mapper<AbpMonthlyCars> {
 
     List<MonthCarsView> monthCad(@Param("uid")String uid);
+
+    AbpMonthlyCars getByPlateNumber(@Param("tenantId")Integer tenantId,@Param("plateNumber")String plateNumber);
 }

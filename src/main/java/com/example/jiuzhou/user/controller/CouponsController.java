@@ -5,6 +5,7 @@ import com.example.jiuzhou.common.Enum.ResultEnum;
 import com.example.jiuzhou.user.mapper.CouponsDetailsMapper;
 import com.example.jiuzhou.user.model.CouponsDetails;
 import com.example.jiuzhou.common.utils.Result;
+import com.example.jiuzhou.user.query.ComputeMoneyQuery;
 import com.example.jiuzhou.user.query.CouponsQuery;
 import com.example.jiuzhou.user.service.CouponsService;
 import lombok.extern.slf4j.Slf4j;
@@ -47,6 +48,14 @@ public class CouponsController {
                     ") ");
         }
         return Result.success(couponsDetailsMapper.getCouponsList(query));
+    }
+
+    @PostMapping("/computeMoney")
+    public Result<?> computeMoney(@RequestBody ComputeMoneyQuery query){
+        if(query.getFee()==null||StringUtils.isEmpty(query.getUid())||query.getCouponId()==null){
+            return Result.error(ResultEnum.MISS_DATA);
+        }
+        return couponsService.canUseCoupon(query.getFee(),query.getUid(), query.getCouponId());
     }
 
 }

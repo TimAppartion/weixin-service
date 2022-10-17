@@ -53,6 +53,13 @@ public class Result<T> {
         return result;
     }
 
+    public static Result error(String msg){
+        Result result = new Result();
+        result.setCode(500);
+        result.setMsg(msg);
+        return result;
+    }
+
     public static Result error(ResultEnum resultEnum, String msg) {
         Result result = new Result();
         result.setCode(resultEnum.getCode());
