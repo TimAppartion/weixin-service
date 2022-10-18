@@ -9,4 +9,5 @@ import tk.mybatis.mapper.common.Mapper;
  * 一入代码深似海，从此生活是路人
  */
 public interface MonthRecordMapper extends Mapper<MonthRecord> {
+    MonthRecord getById(String id);
 }

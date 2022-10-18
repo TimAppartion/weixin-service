@@ -22,7 +22,7 @@ import javax.annotation.Resource;
 
 @Slf4j
 @RestController
-@RequestMapping("/mine")
+@RequestMapping("/message")
 public class WeiXinMessageController {
 
 

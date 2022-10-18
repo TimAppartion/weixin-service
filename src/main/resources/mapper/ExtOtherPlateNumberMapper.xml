@@ -4,6 +4,12 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.example.jiuzhou.user.mapper.ExtOtherPlateNumberMapper">
+    <insert id="insertOne">
+        INSERT INTO ExtOtherPlateNumber
+        ( AssignedOtherAccountId,PlateNumber,CarColor,CarType,sort,IsActive,CreatorUserId,CreationTime,LastModificationTime,LastModifierUserId,DeleterUserId,DeletionTime,IsDeleted,Authentication,AuthenticationType,CarNumberColor,CertificateImg,CertificateReversesImg )
+        VALUES
+        (#{query.AssignedOtherAccountId},#{query.PlateNumber},#{query.CarColor},#{query.CarType},#{query.sort},#{query.IsActive},#{query.CreatorUserId},#{query.CreationTime},#{query.LastModificationTime},#{query.LastModifierUserId},#{query.DeleterUserId},#{query.DeletionTime},#{query.IsDeleted},#{query.Authentication},#{query.AuthenticationType},#{query.CarNumberColor},#{query.CertificateImg},#{query.CertificateReversesImg})
+    </insert>
     <select id="carList" resultType="com.example.jiuzhou.user.view.MineCarView">
         SELECT
             c.PlateNumber as plateNumber,

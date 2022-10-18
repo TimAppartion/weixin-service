@@ -15,6 +15,12 @@ import java.util.TimeZone;
  * 一入代码深似海，从此生活是路人
  */
 public class DateTimeUtils  {
+    public static Date stepMonth(Date sourceDate, int month) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(sourceDate);
+        calendar.add(Calendar.MONTH, month);
+        return calendar.getTime();
+    }
 
     public static String getTimeDifference(String startTime,String endTime){
         SimpleDateFormat df=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");

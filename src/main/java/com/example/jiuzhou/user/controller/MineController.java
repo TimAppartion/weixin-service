@@ -106,7 +106,7 @@ public class MineController {
     }
 
     /**
-     * 订单列表
+     * 账单记录
      * @param query
      * @return
      */

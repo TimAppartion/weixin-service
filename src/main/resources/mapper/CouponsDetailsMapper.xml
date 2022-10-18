@@ -7,13 +7,13 @@
     <!--    <resultMap id="baseMap" type="com.example.jiuzhou.user.model.CouponsDetails">-->
     <!--        <id property="id" column="Id"></id>-->
     <!--        <result property="planId" column="PlanId"></result>-->
-    <!--        <result property="userId" column="UserId"></result>-->
+    <!--        <result property="uid" column="uid"></result>-->
     <!--        <result property="provideTime" column="ProvideTime"></result>-->
     <!--        <result property="status" column="Status"></result>-->
     <!--        <result property="useTime" column="UseTime"></result>-->
     <!--    </resultMap>-->
     <select id="getList" resultType="com.example.jiuzhou.user.model.CouponsDetails">
-        select PlanId,UserId,ProvideTime from CouponsDetails
+        select PlanId,uid,ProvideTime from CouponsDetails
     </select>
     <select id="getCouponsList" resultType="com.example.jiuzhou.user.view.CouponsView">
         SELECT
@@ -34,14 +34,14 @@
         FROM CouponsDetails cd
         LEFT JOIN CouponsPlan cp ON cp.Id= cd.PlanId
         WHERE
-            cd.uid=#{query.userId}
-        <if test="query.status!=null and query.status!=''">
+            cd.uid=#{query.uid}
+        <if test="query.status!=null">
             and cd.Status=#{query.status}
         </if>
-        <if test="query.type!=null and query.type!=''">
-            and cd.Type=#{query.type}
+        <if test="query.type!=null">
+            and cp.Type=#{query.type}
         </if>
-        <if test="query.couponsType!=null and query.couponsType!=''">
+        <if test="query.couponsType!=null">
             and cd.CouponsType=#{query.couponsType}
         </if>
         <if test="query.other!=null">

@@ -72,7 +72,7 @@ public class MineServiceImpl implements MineService {
         }
         if(updateCarNumber(query.getPlateNumber(), query.getUid())){
             ExtOtherPlateNumber extOtherPlateNumber=new ExtOtherPlateNumber();
-            extOtherPlateNumber.setAuthentication(account.getId());
+            extOtherPlateNumber.setAssignedOtherAccountId(account.getId());
             extOtherPlateNumber.setPlateNumber(query.getPlateNumber());
             extOtherPlateNumber.setCarColor(1);
             extOtherPlateNumber.setCarType(1);
@@ -80,7 +80,8 @@ public class MineServiceImpl implements MineService {
             extOtherPlateNumber.setCreatorUserId(TENANTID);
             extOtherPlateNumber.setCreationTime(new Date());
             extOtherPlateNumber.setIsDeleted(0);
-            extOtherPlateNumberMapper.insert(extOtherPlateNumber);
+            extOtherPlateNumber.setSort(1);
+            extOtherPlateNumberMapper.insertOne(extOtherPlateNumber);
         }else{
             return Result.error(ResultEnum.ERROR,"绑定车牌失败");
         }
@@ -167,6 +168,7 @@ public class MineServiceImpl implements MineService {
         }else {
             return false;
         }
+        tUserMapper.updateByPrimaryKey(tUser);
         return true;
     }
 }

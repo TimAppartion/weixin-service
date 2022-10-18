@@ -64,4 +64,7 @@ public class AbpDeductionRecords {
 
     @Column(name="EndMoney")
     private BigDecimal EndMoney;
+
+    @Column(name = "payFrom")
+    private Integer payFrom;
 }

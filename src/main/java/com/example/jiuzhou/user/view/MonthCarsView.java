@@ -1,6 +1,8 @@
 package com.example.jiuzhou.user.view;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.util.Date;
 
@@ -13,12 +15,16 @@ import java.util.Date;
  */
 @Data
 public class MonthCarsView {
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date BeginTime;
 
     private Integer CarType;
 
     private Integer CompanyId;
 
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date CreationTime;
 
     private Integer CreatorUserId;
@@ -27,6 +33,8 @@ public class MonthCarsView {
 
     private String DeletionTime;
 
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date EndTime;
 
     private Integer Id;
@@ -35,6 +43,8 @@ public class MonthCarsView {
 
     private Integer IsSms;
 
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date LastModificationTime;
 
     private Integer LastModifierUserId;

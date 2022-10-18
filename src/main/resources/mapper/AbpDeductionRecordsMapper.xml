@@ -7,10 +7,10 @@
 
     <insert id="insetOne">
         INSERT INTO AbpDeductionRecords
-        ( OtherAccountId,OperType,Money,PayStatus,InTime,Remark,CardNo,EmployeeId,UserId,PlateNumber,TenantId,CompanyId,BeginMoney,EndMoney )
+        ( OtherAccountId,OperType,Money,PayStatus,InTime,Remark,CardNo,EmployeeId,UserId,PlateNumber,TenantId,CompanyId,BeginMoney,EndMoney,payFrom )
         VALUES
         ( #{query.OtherAccountId},#{query.OperType},#{query.Money},#{query.PayStatus},#{query.InTime},#{query.Remark},#{query.CardNo},
-        #{query.EmployeeId},#{query.UserId},#{query.PlateNumber},#{query.TenantId},#{query.CompanyId},#{query.BeginMoney},#{query.EndMoney})
+        #{query.EmployeeId},#{query.UserId},#{query.PlateNumber},#{query.TenantId},#{query.CompanyId},#{query.BeginMoney},#{query.EndMoney},#{query.payFrom})
     </insert>
     <select id="getOrderList" resultType="com.example.jiuzhou.user.model.AbpDeductionRecords">
         select
@@ -20,13 +20,13 @@
         left join TUser c on c.uid = b.uid
         where
         c.uid=#{query.uid}
-        <if test="query.startTime!=null and query.startTime!=''">
+        <if test="query.startTime!=null ">
             and a.InTime>= #{query.startTime}
         </if>
-        <if test="query.endTime!=null and query.endTime!=''">
+        <if test="query.endTime!=null ">
             and a.InTime &lt;= #{query.endTime}
         </if>
-        order By id desc
+        order By a.id desc
     </select>
 </mapper>
 

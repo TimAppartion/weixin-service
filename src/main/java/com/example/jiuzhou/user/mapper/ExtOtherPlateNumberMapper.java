@@ -13,5 +13,6 @@ import java.util.List;
  * 一入代码深似海，从此生活是路人
  */
 public interface ExtOtherPlateNumberMapper extends Mapper<ExtOtherPlateNumber> {
+    void  insertOne(@Param("query")ExtOtherPlateNumber query);
     List<MineCarView> carList(@Param("uid") String uid);
 }

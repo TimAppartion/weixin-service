@@ -1,8 +1,10 @@
 package com.example.jiuzhou.user.service;
 
 import com.example.jiuzhou.common.utils.Result;
+import com.example.jiuzhou.user.query.BalancePayQuery;
 import com.example.jiuzhou.user.query.WeiXinPayQuery;
 
+import java.math.BigDecimal;
 import java.util.Map;
 
 /**
@@ -24,4 +26,30 @@ public interface PublicBasisService {
      * @return
      */
     Result<?> weiXinCallBack(Map<String,String> map);
+
+    /**
+     * 车辆出场
+     * @param guid
+     * @param money
+     */
+    void carOut(String guid, BigDecimal money);
+
+    /**
+     * 车辆连续包月
+     * @param uid
+     * @param plateNumber
+     * @param fee
+     * @param parkId
+     * @param month
+     * @param monthlyType
+     * @return
+     */
+    String monthlyCar(String uid,String plateNumber,BigDecimal fee,Integer parkId,Integer month,String monthlyType);
+
+    /**
+     * 余额支付接口
+     * @param query
+     * @return
+     */
+    Result<?> balancePay(BalancePayQuery query);
 }

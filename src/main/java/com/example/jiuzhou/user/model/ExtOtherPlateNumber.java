@@ -31,8 +31,8 @@ public class ExtOtherPlateNumber {
     @Column(name="CarType")
     private Integer CarType;
 
-    @Column(name="Order")
-    private Integer Order;
+    @Column(name="sort")
+    private Integer sort;
 
     @Column(name="IsActive")
     private Integer IsActive;
