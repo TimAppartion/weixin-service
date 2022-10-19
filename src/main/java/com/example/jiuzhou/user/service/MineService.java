@@ -3,6 +3,7 @@ package com.example.jiuzhou.user.service;
 import com.example.jiuzhou.common.utils.Result;
 import com.example.jiuzhou.user.query.BindCarQuery;
 import com.example.jiuzhou.user.query.OrderQuery;
+import com.example.jiuzhou.user.query.UpdateUserQuery;
 import tk.mybatis.mapper.annotation.Order;
 
 /**
@@ -53,6 +54,11 @@ public interface MineService {
      */
     Result<?> orderList(OrderQuery query);
 
-
+    /**
+     * 修改用户个人信息
+     * @param query
+     * @return
+     */
+    Result<?>updateUser(UpdateUserQuery query);
 
 }

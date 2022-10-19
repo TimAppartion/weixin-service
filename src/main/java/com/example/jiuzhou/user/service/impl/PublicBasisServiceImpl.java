@@ -9,6 +9,7 @@ import com.example.jiuzhou.user.entity.PayAttach;
 import com.example.jiuzhou.user.mapper.*;
 import com.example.jiuzhou.user.model.*;
 import com.example.jiuzhou.user.query.BalancePayQuery;
+import com.example.jiuzhou.user.query.OpinionQuery;
 import com.example.jiuzhou.user.query.WeiXinPayQuery;
 import com.example.jiuzhou.user.service.CouponsService;
 import com.example.jiuzhou.user.service.PublicBasisService;
@@ -28,9 +29,11 @@ import org.apache.commons.lang.time.DateFormatUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
@@ -96,7 +99,8 @@ public class PublicBasisServiceImpl implements PublicBasisService {
     @Resource
     private AbpMonthlyCarHistoryMapper monthlyCarHistoryMapper;
 
-
+    @Resource
+    private OpinionMapper opinionMapper;
 
     @Override
     public Result<?> WeiXinPay(WeiXinPayQuery query) {
@@ -106,8 +110,9 @@ public class PublicBasisServiceImpl implements PublicBasisService {
             if(query.getIsMonthlyRenewal()==null){
                 return Result.error(ResultEnum.MISS_DATA,"是否包月不可为空");
             }
-            if(checkMonthlyCar(query.getIsMonthlyRenewal(),query.getPlateNumber(),query.getParkId())){
-                return Result.error("包月失败");
+            Result result=checkMonthlyCar(query.getIsMonthlyRenewal(),query.getPlateNumber(),query.getParkId());
+            if(result.getCode()!=200){
+                return result;
             }
             MonthRecord monthRecord = new MonthRecord();
             monthRecord.setId(device_info);
@@ -118,7 +123,7 @@ public class PublicBasisServiceImpl implements PublicBasisService {
             monthRecord.setMonth(query.getMonth());
             monthRecord.setMonthlyType(query.getMonthlyType());
             monthRecord.setUid(query.getUid());
-            monthRecordMapper.insert(monthRecord);
+            monthRecordMapper.insertOne(monthRecord);
         }
 
         //计算优惠券金额
@@ -181,7 +186,8 @@ public class PublicBasisServiceImpl implements PublicBasisService {
     }
 
     @Override
-    public Result<?> weiXinCallBack(Map<String, String> params) {
+    @Transactional(rollbackFor = Exception.class)
+    public Result<?> weiXinCallBack(Map<String, String> params) throws ParseException {
 
         //读取系统配置
         AbpWeixinConfig config= JSONObject.parseObject(redisTemplate.opsForValue().get("config").toString(),AbpWeixinConfig.class);
@@ -348,7 +354,7 @@ public class PublicBasisServiceImpl implements PublicBasisService {
     }
 
     @Override
-    public String monthlyCar(String uid,String plateNumber, BigDecimal fee, Integer parkId, Integer month, String monthlyType) {
+    public void monthlyCar(String uid,String plateNumber, BigDecimal fee, Integer parkId, Integer month, String monthlyType) throws ParseException {
         log.info("车辆包月续费plateNumber:"+plateNumber+" fee:"+fee+" parkId:"+parkId+" month:"+month+" monthlyType:"+monthlyType);
         AbpMonthlyCars monthlyCars = abpMonthlyCarsMapper.getByPlateNumber(TENANTID,plateNumber);
         TUser tUser = tUserMapper.getByUid(uid);
@@ -358,77 +364,69 @@ public class PublicBasisServiceImpl implements PublicBasisService {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         if(monthlyCars==null){
             //新增包月车辆
-            try{
 
-                Date nowDate = new Date();
-                String beginTime = df.format(nowDate) + " 00:00:00";
-                String endTime = df.format(DateTimeUtils.stepMonth(nowDate, month)) + " 00:00:00";
+            Date nowDate = new Date();
+            String beginTime = df.format(nowDate) + " 00:00:00";
+            String endTime = df.format(DateTimeUtils.stepMonth(nowDate, month)) + " 00:00:00";
 
 
-                AbpMonthlyCars cars=new AbpMonthlyCars();
-                cars.setVehicleOwner(StringUtils.isNotEmpty(tUser.getNickName())? tUser.getNickName():plateNumber);
-                cars.setTelphone(tUser.getTel());
-                cars.setPlateNumber(plateNumber);
-                cars.setMoney(fee);
-                cars.setParkIds(parkId.toString());
-                cars.setBeginTime(sdf.parse(beginTime));
-                cars.setEndTime(sdf.parse(endTime));
-                cars.setCarType(0);
-                cars.setVersion(1);
-                cars.setIsDeleted(0);
-                cars.setTenantId(TENANTID);
-                cars.setCompanyId(MONECOMPANYID);
-                cars.setCreatorUserId(MONEUSERID);
-                cars.setMonthyType( monthlyType);
-                abpMonthlyCarsMapper.insert(cars);
-                addMonthlyCarHistory(plateNumber,fee,parkId,sdf.parse(beginTime),sdf.parse(endTime),monthlyType,1,3);
-            }catch (Exception e){
-                log.error("新增包月失败");
-                e.printStackTrace();
-                return "error";
-            }
+            AbpMonthlyCars cars=new AbpMonthlyCars();
+            cars.setVehicleOwner(StringUtils.isNotEmpty(tUser.getNickName())? tUser.getNickName():plateNumber);
+            cars.setTelphone(tUser.getTel());
+            cars.setPlateNumber(plateNumber);
+            cars.setMoney(fee);
+            cars.setParkIds(parkId.toString());
+            cars.setBeginTime(sdf.parse(beginTime));
+            cars.setEndTime(sdf.parse(endTime));
+            cars.setCarType(0);
+            cars.setVersion(1);
+            cars.setIsDeleted(0);
+            cars.setTenantId(TENANTID);
+            cars.setCompanyId(MONECOMPANYID);
+            cars.setCreatorUserId(MONEUSERID);
+            cars.setCreationTime(new Date());
+            cars.setMonthyType( monthlyType);
+            cars.setIsSms(0);
+            abpMonthlyCarsMapper.insertOne(cars);
+            addMonthlyCarHistory(plateNumber,fee,parkId,sdf.parse(beginTime),sdf.parse(endTime),monthlyType,1,3);
             //推送包月消息
             pushMessageService.sendMonthlyCarRenewalMsg(tUser.getOpenId(),fee,plateNumber,false);
         }else{
             //包月续费
-            try {
-                monthlyCars.setVehicleOwner(StringUtils.isNotEmpty(tUser.getNickName()) ? tUser.getNickName() : plateNumber);
-                fee = fee.setScale(2, BigDecimal.ROUND_HALF_UP);
-                fee = fee.add(monthlyCars.getMoney());
-                monthlyCars.setMoney(fee);
-                monthlyCars.setParkIds(parkId.toString());
+            monthlyCars.setVehicleOwner(StringUtils.isNotEmpty(tUser.getNickName()) ? tUser.getNickName() : plateNumber);
+            fee = fee.setScale(2, BigDecimal.ROUND_HALF_UP);
+            fee = fee.add(monthlyCars.getMoney());
+            monthlyCars.setMoney(fee);
+            monthlyCars.setParkIds(parkId.toString());
 
 
-                Date endTime = monthlyCars.getEndTime();
-                Date historyBeginTime;
-                Date newEndTime;
-                if (endTime.getTime() >= new Date().getTime()) {
-                    // 包月未到期
-                    newEndTime = DateTimeUtils.stepMonth(endTime, month);
-                    historyBeginTime = endTime;
-                } else {
-                    // 包月到期
-                    historyBeginTime = new Date();
-                    newEndTime = DateTimeUtils.stepMonth(new Date(),month);
-                }
-                monthlyCars.setEndTime(newEndTime);
-                monthlyCars.setVersion(monthlyCars.getVersion() + 1);
-                monthlyCars.setLastModificationTime(new Date());
-                monthlyCars.setLastModifierUserId(MONEUSERID);
-                abpMonthlyCarsMapper.updateByPrimaryKey(monthlyCars);
-                addMonthlyCarHistory(plateNumber, fee, parkId, historyBeginTime, newEndTime, monthlyType, 0, 3);
-            }catch (Exception e){
-                log.error("包月续费失败");
-                e.printStackTrace();
-                return "error";
+            Date endTime = monthlyCars.getEndTime();
+            Date historyBeginTime;
+            Date newEndTime;
+            if (endTime.getTime() >= new Date().getTime()) {
+                // 包月未到期
+                newEndTime = DateTimeUtils.stepMonth(endTime, month);
+                historyBeginTime = endTime;
+            } else {
+                // 包月到期
+                historyBeginTime = new Date();
+                newEndTime = DateTimeUtils.stepMonth(new Date(),month);
             }
+            monthlyCars.setEndTime(newEndTime);
+            monthlyCars.setVersion(monthlyCars.getVersion() + 1);
+            monthlyCars.setLastModificationTime(new Date());
+            monthlyCars.setLastModifierUserId(MONEUSERID);
+            monthlyCars.setIsSms(0);
+            abpMonthlyCarsMapper.updateByPrimaryKey(monthlyCars);
+            addMonthlyCarHistory(plateNumber, fee, parkId, historyBeginTime, newEndTime, monthlyType, 0, 3);
+
             pushMessageService.sendMonthlyCarRenewalMsg(tUser.getOpenId(),fee,plateNumber,true);
         }
-        return "success";
     }
 
     @Override
-    public Result<?> balancePay(BalancePayQuery query) {
+    @Transactional(rollbackFor = Exception.class)
+    public Result<?> balancePay(BalancePayQuery query) throws ParseException {
         //取系统配置信息
         AbpWeixinConfig config=JSONObject.parseObject(redisTemplate.opsForValue().get("config").toString(),AbpWeixinConfig.class);
 
@@ -440,8 +438,6 @@ public class PublicBasisServiceImpl implements PublicBasisService {
             }
             query.setFee(new BigDecimal(result.getData().toString()));
         }
-        //获取用户信息
-        TUser tUser = tUserMapper.getByUid(query.getUid());
         //获取用户余额信息
         ExtOtherAccount account = extOtherAccountMapper.getByUid(query.getUid());
         BigDecimal wallet = account.getWallet();
@@ -463,17 +459,23 @@ public class PublicBasisServiceImpl implements PublicBasisService {
             deductionRecords.setBeginMoney(account.getWallet());
             deductionRecords.setEndMoney(money);
             deductionRecords.setPayFrom(3);
+            deductionRecords.setInTime(new Date());
 
             account.setWallet(money);
         }
 
         if(query.getType()==2){
             //包月
-            if(StringUtils.isEmpty(query.getPlateNumber()) || query.getParkId()==null || query.getIsMonthlyRenewal()!=null){
+            if(StringUtils.isEmpty(query.getPlateNumber()) || query.getParkId()==null || query.getIsMonthlyRenewal()==null){
                 return Result.error(ResultEnum.MISS_DATA);
+            }
+            Result result=checkMonthlyCar(query.getIsMonthlyRenewal(),query.getPlateNumber(),query.getParkId());
+            if(result.getCode()!=200){
+                return result;
             }
             deductionRecords.setOperType(1);
             deductionRecords.setRemark("包月缴费");
+            monthlyCar(query.getUid(),query.getPlateNumber(),query.getFee(),query.getParkId(), query.getMonth(), query.getMonthlyType());
         }
         String tf = String.valueOf(Double.valueOf(query.getFee().toString()) * 0.01);
         if(query.getType()==3){
@@ -498,6 +500,18 @@ public class PublicBasisServiceImpl implements PublicBasisService {
         if(query.getCouponId()!=null){
             couponsService.useCoupon(query.getCouponId(), 2);
         }
+        return Result.success();
+    }
+
+    @Override
+    public Result<?> insertOpinion(OpinionQuery query) {
+        Opinion opinion= new Opinion();
+        opinion.setUid(query.getUid());
+        opinion.setType(query.getType());
+        opinion.setCreateTime(new Date());
+        opinion.setContext(query.getContext());
+        opinion.setStatus(1);
+        opinionMapper.insert(opinion);
         return Result.success();
     }
 
@@ -528,8 +542,7 @@ public class PublicBasisServiceImpl implements PublicBasisService {
         monthlyCarHistory.setMonthyType(monthlyType);
         // 0：未知 2：刷卡支付 3：微信支付
         monthlyCarHistory.setPayStatus(payStatus);
-        monthlyCarHistoryMapper.insert(monthlyCarHistory);
-        //TODO
+        monthlyCarHistoryMapper.insertOne(monthlyCarHistory);
     }
 
 
@@ -557,21 +570,21 @@ public class PublicBasisServiceImpl implements PublicBasisService {
     }
 
 
-    private boolean checkMonthlyCar(boolean isMonthlyRenewal,String plateNumber,Integer parkId){
+    private Result<?> checkMonthlyCar(boolean isMonthlyRenewal,String plateNumber,Integer parkId){
         AbpMonthlyCars abpMonthlyCars= abpMonthlyCarsMapper.getByPlateNumber(TENANTID,plateNumber);
         log.info("月卡信息:{},plateNumber:{}",abpMonthlyCars,plateNumber);
         if(isMonthlyRenewal){
             //续费
             Date now=new Date();
-            if(abpMonthlyCars.getEndTime().getTime()>=now.getTime() && !abpMonthlyCars.getParkIds().equals(parkId)){
-                return false;
+            if(abpMonthlyCars.getEndTime().getTime()>=now.getTime() && !abpMonthlyCars.getParkIds().equals(parkId.toString())){
+                return Result.error(ResultEnum.ERROR,"该车辆包月未到期，不能更改路段");
             }
         }else{
             //购买月卡
             if(abpMonthlyCars!=null){
-                return false;
+                return Result.error(ResultEnum.ERROR,"该车辆已购买月卡，请勿重复购买");
             }
         }
-        return true;
+        return Result.success();
     }
 }

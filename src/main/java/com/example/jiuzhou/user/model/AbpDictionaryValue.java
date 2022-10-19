@@ -15,7 +15,7 @@ import javax.persistence.Table;
 @Data
 @Table(name = "AbpDictionaryValue")
 public class AbpDictionaryValue {
-
+    @javax.persistence.Id
     @Column(name="Id")
     private Integer Id;
 

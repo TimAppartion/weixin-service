@@ -1,5 +1,6 @@
 package com.example.jiuzhou.user.controller;
 
+import com.alibaba.fastjson.JSONObject;
 import com.example.jiuzhou.common.Enum.ResultEnum;
 import com.example.jiuzhou.common.utils.Result;
 import com.example.jiuzhou.user.mapper.MonthCardMapper;
@@ -7,6 +8,7 @@ import com.example.jiuzhou.user.mapper.RechargeRuleMapper;
 import com.example.jiuzhou.user.model.MonthCard;
 import com.example.jiuzhou.user.model.RechargeRule;
 import com.example.jiuzhou.user.query.BalancePayQuery;
+import com.example.jiuzhou.user.query.OpinionQuery;
 import com.example.jiuzhou.user.query.WeiXinPayQuery;
 import com.example.jiuzhou.user.service.PublicBasisService;
 import com.jfinal.kit.Prop;
@@ -21,6 +23,7 @@ import javax.annotation.Resource;
 import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import java.text.ParseException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -79,7 +82,7 @@ public class PublicBasisController {
     }
 
     @RequestMapping("/WeiXinCallBack")
-    public String weiXinCallBack(HttpServletRequest request) throws IOException {
+    public String weiXinCallBack(HttpServletRequest request) throws IOException, ParseException {
         log.info("微信回调接口返回参数:{}",request);
         ServletInputStream is = request.getInputStream();
         byte[] bs = new byte[1024];
@@ -117,10 +120,25 @@ public class PublicBasisController {
     }
 
     @RequestMapping("/BalancePay")
-    public Result<?> balancePay (@RequestBody BalancePayQuery query){
+    public Result<?> balancePay (@RequestBody BalancePayQuery query) throws ParseException {
         if(query.getFee()==null || StringUtils.isEmpty(query.getUid()) ){
             return Result.error(ResultEnum.MISS_DATA);
         }
         return publicBasisService.balancePay(query);
+    }
+
+    @PostMapping("/insertOpinion")
+    public Result<?> insertOpinion(@RequestBody OpinionQuery query){
+        if(StringUtils.isEmpty(query.getUid()) || StringUtils.isEmpty(query.getContext()) || query.getType()!=null){
+            return Result.error(ResultEnum.MISS_DATA);
+        }
+        return publicBasisService.insertOpinion(query);
+    }
+
+
+    @RequestMapping("/test")
+    public Result<?> test(@RequestBody JSONObject jsonObject){
+        log.info("test:{}",jsonObject);
+        return Result.success(jsonObject);
     }
 }

@@ -15,6 +15,7 @@ import java.math.BigDecimal;
 @Data
 @Table(name = "MonthRule")
 public class MonthRule {
+    @javax.persistence.Id
     @Column(name="Id")
     private Integer Id;
 

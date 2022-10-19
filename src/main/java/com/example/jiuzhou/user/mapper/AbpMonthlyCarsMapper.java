@@ -13,6 +13,7 @@ import java.util.List;
  * 一入代码深似海，从此生活是路人
  */
 public interface AbpMonthlyCarsMapper extends Mapper<AbpMonthlyCars> {
+    void insertOne(@Param("query") AbpMonthlyCars query);
 
     List<MonthCarsView> monthCad(@Param("uid")String uid);
 

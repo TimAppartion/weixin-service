@@ -5,6 +5,7 @@ import com.example.jiuzhou.common.utils.Result;
 import com.example.jiuzhou.user.mapper.ExtOtherPlateNumberMapper;
 import com.example.jiuzhou.user.query.BindCarQuery;
 import com.example.jiuzhou.user.query.OrderQuery;
+import com.example.jiuzhou.user.query.UpdateUserQuery;
 import com.example.jiuzhou.user.service.MineService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
@@ -122,6 +123,19 @@ public class MineController {
             return Result.error(ResultEnum.MISS_DATA);
         }
         return mineService.orderList(query);
+    }
+
+    /**
+     * 修改用户个人信息
+     * @param query
+     * @return
+     */
+    @PostMapping("/updateUser")
+    public Result<?> updateUser(@RequestBody UpdateUserQuery query){
+        if(StringUtils.isEmpty(query.getUid())){
+            return Result.error(ResultEnum.MISS_DATA);
+        }
+        return mineService.updateUser(query);
     }
 
 }

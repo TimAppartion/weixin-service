@@ -2,6 +2,8 @@ package com.example.jiuzhou.user.view;
 
 import lombok.Data;
 
+import java.math.BigDecimal;
+
 /**
  * @author Appartion
  * @data 2022/10/17
@@ -16,7 +18,7 @@ public class UserInfoView {
     private String NickName;
     private Integer sex;
     private String tel;
-    private Integer Wallet;
+    private BigDecimal Wallet;
 
     private String headImgUrl;
     private String openId;

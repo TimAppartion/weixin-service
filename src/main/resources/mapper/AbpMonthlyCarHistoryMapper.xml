@@ -5,4 +5,10 @@
 
 <mapper namespace="com.example.jiuzhou.user.mapper.AbpMonthlyCarHistoryMapper">
 
+    <insert id="insertOne">
+        INSERT INTO AbpMonthlyCarHistory
+        ( MonthlyCarId,Money,ParkIds,BeginTime,EndTime,Status,CreationTime,CreatorUserId,MonthyType,PayStatus,tranid )
+        VALUES
+        ( #{query.MonthlyCarId},#{query.Money},#{query.ParkIds},#{query.BeginTime},#{query.EndTime},#{query.Status},#{query.CreationTime},#{query.CreatorUserId},#{query.MonthyType},#{query.PayStatus},#{query.tranid} )
+    </insert>
 </mapper>

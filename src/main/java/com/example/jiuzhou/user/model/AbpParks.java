@@ -16,6 +16,7 @@ import java.util.Date;
 @Data
 @Table(name = "AbpParks")
 public class AbpParks {
+    @javax.persistence.Id
     @Column(name="Id")
     private Integer Id;
 

@@ -2,9 +2,11 @@ package com.example.jiuzhou.user.service;
 
 import com.example.jiuzhou.common.utils.Result;
 import com.example.jiuzhou.user.query.BalancePayQuery;
+import com.example.jiuzhou.user.query.OpinionQuery;
 import com.example.jiuzhou.user.query.WeiXinPayQuery;
 
 import java.math.BigDecimal;
+import java.text.ParseException;
 import java.util.Map;
 
 /**
@@ -25,7 +27,7 @@ public interface PublicBasisService {
      * @param map
      * @return
      */
-    Result<?> weiXinCallBack(Map<String,String> map);
+    Result<?> weiXinCallBack(Map<String,String> map) throws ParseException;
 
     /**
      * 车辆出场
@@ -42,14 +44,20 @@ public interface PublicBasisService {
      * @param parkId
      * @param month
      * @param monthlyType
-     * @return
      */
-    String monthlyCar(String uid,String plateNumber,BigDecimal fee,Integer parkId,Integer month,String monthlyType);
+    void monthlyCar(String uid,String plateNumber,BigDecimal fee,Integer parkId,Integer month,String monthlyType) throws ParseException;
 
     /**
      * 余额支付接口
      * @param query
      * @return
      */
-    Result<?> balancePay(BalancePayQuery query);
+    Result<?> balancePay(BalancePayQuery query) throws ParseException;
+
+    /**
+     * 新增意见接口
+     * @param query
+     * @return
+     */
+    Result<?> insertOpinion(OpinionQuery query);
 }

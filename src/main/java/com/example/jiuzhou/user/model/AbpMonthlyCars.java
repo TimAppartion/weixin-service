@@ -5,6 +5,7 @@ import lombok.Data;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.persistence.Column;
+import javax.persistence.Id;
 import javax.persistence.Table;
 import java.math.BigDecimal;
 import java.util.Date;
@@ -17,6 +18,7 @@ import java.util.Date;
 @Data
 @Table(name = "AbpMonthlyCars")
 public class AbpMonthlyCars {
+    @javax.persistence.Id
     @Column(name="Id")
     private Integer Id;
 

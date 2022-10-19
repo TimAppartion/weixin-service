@@ -16,6 +16,7 @@ import java.util.Date;
 @Data
 @Table(name = "ExtOtherPlateNumber")
 public class ExtOtherPlateNumber {
+    @javax.persistence.Id
     @Column(name="Id")
     private Integer Id;
 

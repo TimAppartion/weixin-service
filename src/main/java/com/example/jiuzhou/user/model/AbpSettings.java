@@ -11,6 +11,7 @@ import java.util.Date;
 @Data
 @Table(name = "AbpSettings")
 public class AbpSettings {
+    @javax.persistence.Id
     @Column(name="Id")
     private Integer Id;
 

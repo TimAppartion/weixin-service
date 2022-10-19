@@ -7,6 +7,7 @@ import com.example.jiuzhou.user.mapper.*;
 import com.example.jiuzhou.user.model.*;
 import com.example.jiuzhou.user.query.BindCarQuery;
 import com.example.jiuzhou.user.query.OrderQuery;
+import com.example.jiuzhou.user.query.UpdateUserQuery;
 import com.example.jiuzhou.user.service.MineService;
 import com.example.jiuzhou.user.view.MonthCarsView;
 import com.example.jiuzhou.user.view.UserInfoView;
@@ -155,6 +156,19 @@ public class MineServiceImpl implements MineService {
         PageHelper.startPage(query.getPageNumber(), query.getPageSize());
         List<AbpDeductionRecords> list=abpDeductionRecordsMapper.getOrderList(query);
         return Result.success(new PageInfo (list));
+    }
+
+    @Override
+    public Result<?> updateUser(UpdateUserQuery query) {
+        TUser tUser = tUserMapper.getByUid(query.getUid());
+        if(tUser==null){
+            return Result.error(ResultEnum.ERROR,"未查询到用户信息");
+        }
+        tUser.setNickName(query.getNickName());
+        tUser.setSex(query.getSex());
+        tUser.setBirthday(query.getBirthday());
+        tUserMapper.updateByPrimaryKey(tUser);
+        return Result.success("用户信息修改完成");
     }
 
     public boolean updateCarNumber(String plateNumber,String uid){
