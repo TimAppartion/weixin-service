@@ -1,7 +1,7 @@
 package com.example.jiuzhou.user.service;
 
 import com.example.jiuzhou.user.model.AbpBerthsecs;
-import com.example.jiuzhou.user.query.BerthsecsQuery;
+import com.example.jiuzhou.user.query.BerthsQuery;
 import com.github.pagehelper.PageInfo;
 
 public interface AbpBerthsecsService {
@@ -10,5 +10,5 @@ public interface AbpBerthsecsService {
      * @param query
      * @return
      */
-    PageInfo<AbpBerthsecs> nearSite(BerthsecsQuery query);
+    PageInfo<AbpBerthsecs> nearSite(BerthsQuery query);
 }

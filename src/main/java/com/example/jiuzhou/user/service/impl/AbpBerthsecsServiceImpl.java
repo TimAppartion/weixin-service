@@ -3,7 +3,7 @@ package com.example.jiuzhou.user.service.impl;
 import com.example.jiuzhou.common.utils.MathUtils;
 import com.example.jiuzhou.user.mapper.AbpBerthsecsMapper;
 import com.example.jiuzhou.user.model.AbpBerthsecs;
-import com.example.jiuzhou.user.query.BerthsecsQuery;
+import com.example.jiuzhou.user.query.BerthsQuery;
 import com.example.jiuzhou.user.service.AbpBerthsecsService;
 import com.example.jiuzhou.user.view.AbpBerthsecsView;
 import com.github.pagehelper.PageHelper;
@@ -23,7 +23,7 @@ public class AbpBerthsecsServiceImpl implements AbpBerthsecsService {
     private AbpBerthsecsMapper abpBerthsecsMapper;
 
     @Override
-    public PageInfo<AbpBerthsecs> nearSite(BerthsecsQuery query) {
+    public PageInfo<AbpBerthsecs> nearSite(BerthsQuery query) {
         double lng = Double.parseDouble(query.getLng());
         double lat = Double.parseDouble(query.getLat());
 

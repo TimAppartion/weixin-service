@@ -4,15 +4,12 @@ package com.example.jiuzhou.user.controller;
 import com.example.jiuzhou.common.Enum.ResultEnum;
 import com.example.jiuzhou.common.utils.Result;
 import com.example.jiuzhou.user.model.AbpBerthsecs;
-import com.example.jiuzhou.user.query.BerthsecsQuery;
+import com.example.jiuzhou.user.query.BerthsQuery;
 import com.example.jiuzhou.user.service.AbpBerthsecsService;
 import com.github.pagehelper.PageInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 /**
@@ -30,7 +27,7 @@ public class HomePageController {
     private AbpBerthsecsService abpBerthsecsService;
 
     @PostMapping("/NearSite")
-    public Result<PageInfo<AbpBerthsecs>> nearSite(@RequestBody BerthsecsQuery query){
+    public Result<PageInfo<AbpBerthsecs>> nearSite(@RequestBody BerthsQuery query){
 
         if(query.getPageIndex()==null){
             query.setPageIndex(1);
@@ -42,6 +39,16 @@ public class HomePageController {
             return Result.error(ResultEnum.MISS_DATA);
         }
         return Result.success(abpBerthsecsService.nearSite(query));
+    }
+
+    /**
+     * 获取微信skd
+     * @param guid
+     * @return
+     */
+    @PostMapping("/getWxSDK")
+    public Result<?> getWxSDK(@RequestParam(value = "guid", required = false) String guid){
+        return Result.success();
     }
 
 

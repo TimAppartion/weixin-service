@@ -458,7 +458,7 @@ public class PublicBasisServiceImpl implements PublicBasisService {
             deductionRecords.setCardNo(account.getCardNo());
             deductionRecords.setBeginMoney(account.getWallet());
             deductionRecords.setEndMoney(money);
-            deductionRecords.setPayFrom(3);
+            deductionRecords.setPayFrom(query.getPayFrom());
             deductionRecords.setInTime(new Date());
 
             account.setWallet(money);
@@ -511,7 +511,7 @@ public class PublicBasisServiceImpl implements PublicBasisService {
         opinion.setCreateTime(new Date());
         opinion.setContext(query.getContext());
         opinion.setStatus(1);
-        opinionMapper.insert(opinion);
+        opinionMapper.insertOne(opinion);
         return Result.success();
     }
 

@@ -2,20 +2,24 @@ package com.example.jiuzhou.user.controller;
 
 import com.alibaba.fastjson.JSONObject;
 import com.example.jiuzhou.common.Enum.ResultEnum;
+import com.example.jiuzhou.common.utils.ImageUtils;
 import com.example.jiuzhou.common.utils.Result;
 import com.example.jiuzhou.user.mapper.MonthCardMapper;
 import com.example.jiuzhou.user.mapper.RechargeRuleMapper;
 import com.example.jiuzhou.user.model.MonthCard;
 import com.example.jiuzhou.user.model.RechargeRule;
 import com.example.jiuzhou.user.query.BalancePayQuery;
+import com.example.jiuzhou.user.query.ImageQuery;
 import com.example.jiuzhou.user.query.OpinionQuery;
 import com.example.jiuzhou.user.query.WeiXinPayQuery;
 import com.example.jiuzhou.user.service.PublicBasisService;
 import com.jfinal.kit.Prop;
 import com.jfinal.kit.PropKit;
 import com.jfinal.weixin.sdk.kit.PaymentKit;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.time.DateFormatUtils;
 import org.springframework.web.bind.annotation.*;
 import tk.mybatis.mapper.entity.Example;
 
@@ -24,7 +28,9 @@ import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -121,7 +127,7 @@ public class PublicBasisController {
 
     @RequestMapping("/BalancePay")
     public Result<?> balancePay (@RequestBody BalancePayQuery query) throws ParseException {
-        if(query.getFee()==null || StringUtils.isEmpty(query.getUid()) ){
+        if(query.getFee()==null || StringUtils.isEmpty(query.getUid()) || query.getPayFrom()==null ){
             return Result.error(ResultEnum.MISS_DATA);
         }
         return publicBasisService.balancePay(query);
@@ -129,7 +135,7 @@ public class PublicBasisController {
 
     @PostMapping("/insertOpinion")
     public Result<?> insertOpinion(@RequestBody OpinionQuery query){
-        if(StringUtils.isEmpty(query.getUid()) || StringUtils.isEmpty(query.getContext()) || query.getType()!=null){
+        if(StringUtils.isEmpty(query.getUid()) || StringUtils.isEmpty(query.getContext()) || query.getType()==null){
             return Result.error(ResultEnum.MISS_DATA);
         }
         return publicBasisService.insertOpinion(query);
@@ -140,5 +146,18 @@ public class PublicBasisController {
     public Result<?> test(@RequestBody JSONObject jsonObject){
         log.info("test:{}",jsonObject);
         return Result.success(jsonObject);
+    }
+
+    @RequestMapping(value = "/image")
+    private List<String> getImageById(@RequestBody ImageQuery query) throws IOException {
+        String where = "D:";
+        List<String>paths=new ArrayList<>();
+        String path = "/JiuZhou/image/"+DateFormatUtils.format(System.currentTimeMillis(), "yyyyMMddHHmmss");
+        for(Integer i=0;i<query.getImageList().size();i++){
+            ;
+            ImageUtils.generateImage(query.getImageList().get(i),where+path+i+".jpg");
+            paths.add(path+i+".jpg");
+        }
+        return paths;
     }
 }

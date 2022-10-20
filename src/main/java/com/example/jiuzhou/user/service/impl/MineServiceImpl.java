@@ -1,7 +1,6 @@
 package com.example.jiuzhou.user.service.impl;
 
 import com.example.jiuzhou.common.Enum.ResultEnum;
-import com.example.jiuzhou.common.utils.ModelUtils;
 import com.example.jiuzhou.common.utils.Result;
 import com.example.jiuzhou.user.mapper.*;
 import com.example.jiuzhou.user.model.*;
@@ -20,8 +19,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
+
+import org.apache.commons.lang.StringUtils;
 import tk.mybatis.mapper.entity.Example;
 
 import javax.annotation.Resource;
@@ -164,9 +163,15 @@ public class MineServiceImpl implements MineService {
         if(tUser==null){
             return Result.error(ResultEnum.ERROR,"未查询到用户信息");
         }
-        tUser.setNickName(query.getNickName());
-        tUser.setSex(query.getSex());
-        tUser.setBirthday(query.getBirthday());
+        if(StringUtils.isNotEmpty(query.getNickName())){
+            tUser.setNickName(query.getNickName());
+        }
+        if(query.getSex()!=null){
+            tUser.setSex(query.getSex());
+        }
+        if(StringUtils.isNotEmpty(query.getBirthday())){
+            tUser.setBirthday(query.getBirthday());
+        }
         tUserMapper.updateByPrimaryKey(tUser);
         return Result.success("用户信息修改完成");
     }

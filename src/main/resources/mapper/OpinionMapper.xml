@@ -4,4 +4,11 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.example.jiuzhou.user.mapper.OpinionMapper">
+    <insert id="insertOne">
+        INSERT INTO
+        Opinion
+        ( uid,type,context,createTime,status,opinionTime,handleResult )
+        VALUES
+        ( #{query.uid},#{query.type},#{query.context},#{query.createTime},#{query.status},#{query.opinionTime},#{query.handleResult} )
+    </insert>
 </mapper>
