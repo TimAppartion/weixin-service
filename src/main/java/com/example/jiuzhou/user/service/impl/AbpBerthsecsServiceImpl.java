@@ -1,6 +1,7 @@
 package com.example.jiuzhou.user.service.impl;
 
 import com.example.jiuzhou.common.utils.MathUtils;
+import com.example.jiuzhou.common.utils.Result;
 import com.example.jiuzhou.user.mapper.AbpBerthsecsMapper;
 import com.example.jiuzhou.user.model.AbpBerthsecs;
 import com.example.jiuzhou.user.query.BerthsQuery;
@@ -44,5 +45,26 @@ public class AbpBerthsecsServiceImpl implements AbpBerthsecsService {
         }
         PageInfo pageInfo=new PageInfo(list);
         return pageInfo;
+    }
+
+    @Override
+    public Result<?> nearSiteMap(BerthsQuery query) {
+        double lng = Double.parseDouble(query.getLng());
+        double lat = Double.parseDouble(query.getLat());
+        List<AbpBerthsecsView> list=abpBerthsecsMapper.nearSite(query);
+        for(AbpBerthsecsView view:list){
+            if(StringUtils.isNotEmpty(view.getLatitude())&&StringUtils.isNotEmpty(view.getLongitude()) ){
+                double lat_ = Double.parseDouble(view.getLatitude());
+                double lng_ = Double.parseDouble(view.getLongitude());
+                double dis = MathUtils.LantitudeLongitudeDist(lng,lat,lng_,lat_);
+                double dis_ = dis/1000;
+                if(dis_*1000>1000){
+                    view.setDistance_(String.format("%.1f",dis_));
+                }else{
+                    view.setDistance_(String.format("%.2f",dis_));
+                }
+            }
+        }
+        return Result.success(list);
     }
 }

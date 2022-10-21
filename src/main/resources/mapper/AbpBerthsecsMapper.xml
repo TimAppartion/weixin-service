@@ -13,4 +13,7 @@
         </if>
         ) s ORDER BY distance ) as temp
     </select>
+    <select id="getById" resultType="com.example.jiuzhou.user.model.AbpBerthsecs">
+        select * from AbpBerthsecs where Id =#{id}
+    </select>
 </mapper>

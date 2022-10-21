@@ -42,7 +42,7 @@
             and cp.Type=#{query.type}
         </if>
         <if test="query.couponsType!=null">
-            and cd.CouponsType=#{query.couponsType}
+            and cp.CouponsType=#{query.couponsType}
         </if>
         <if test="query.other!=null">
             ${query.other}

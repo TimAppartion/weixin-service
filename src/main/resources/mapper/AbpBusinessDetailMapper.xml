@@ -7,4 +7,26 @@
     <select id="getByGuid" resultType="com.example.jiuzhou.user.model.AbpBusinessDetail">
         select * from AbpBusinessDetail with(nolock) where guid =#{guid}
     </select>
+    <select id="getAllOrder" resultType="com.example.jiuzhou.user.view.ParkOrderView">
+        select
+            AbpBusinessDetail.Id,
+            AbpBusinessDetail.Status,
+            AbpBusinessDetail.guid,
+            AbpBusinessDetail.PlateNumber,
+            AbpBusinessDetail.CarInTime,
+            AbpBerthsecs.BerthsecName,
+            AbpBusinessDetail.Prepaid,
+            AbpBusinessDetail.BerthNumber,
+            AbpBusinessDetail.BerthsecId ,
+            ap.ParkType
+        from AbpBusinessDetail with(nolock)
+        right join TUser on CarNumber1 = PlateNumber or CarNumber2 = PlateNumber or CarNumber3 = PlateNumber
+        left join AbpBerthsecs on AbpBerthsecs.Id = AbpBusinessDetail.BerthsecId
+        LEFT JOIN AbpParks ap on ap.Id=AbpBusinessDetail.ParkId
+        where
+        TUser.uid = #{uid}
+        and Status = 1
+        and AbpBusinessDetail.IsDeleted = 0
+        order by CarInTime desc
+    </select>
 </mapper>

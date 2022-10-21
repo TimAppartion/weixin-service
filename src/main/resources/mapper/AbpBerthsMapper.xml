@@ -7,4 +7,15 @@
     <select id="getByGuid" resultType="com.example.jiuzhou.user.model.AbpBerths">
         select * from AbpBerths where guid = #{guid}
     </select>
+    <select id="getByBerthsecId" resultType="com.example.jiuzhou.user.model.AbpBerths">
+        select
+            Id,
+            BerthNumber,
+            BerthStatus,
+            ParkId
+        from AbpBerths
+        where
+        TenantId = #{TenantId}
+        and berthsecId = #{berthsecId}
+    </select>
 </mapper>

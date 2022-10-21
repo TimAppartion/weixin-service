@@ -9,5 +9,8 @@ import tk.mybatis.mapper.common.Mapper;
 import java.util.List;
 
 public interface AbpBerthsecsMapper extends Mapper<AbpBerthsecs> {
+
+    AbpBerthsecs getById(@Param("id")Integer id);
+
     List<AbpBerthsecsView> nearSite(@Param("query") BerthsQuery query);
 }

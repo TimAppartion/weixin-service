@@ -1,7 +1,10 @@
 package com.example.jiuzhou.user.mapper;
 
 import com.example.jiuzhou.user.model.AbpBusinessDetail;
+import com.example.jiuzhou.user.view.ParkOrderView;
 import tk.mybatis.mapper.common.Mapper;
+
+import java.util.List;
 
 /**
  * @author Appartion
@@ -10,4 +13,5 @@ import tk.mybatis.mapper.common.Mapper;
  */
 public interface AbpBusinessDetailMapper extends Mapper<AbpBusinessDetail> {
     AbpBusinessDetail getByGuid(String guid);
+    List<ParkOrderView> getAllOrder(String uid);
 }
