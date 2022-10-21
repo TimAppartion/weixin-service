@@ -40,59 +40,59 @@ public class HomePageServiceImpl implements HomePageService {
     @Resource
     private AbpBerthsecsMapper berthsecsMapper;
 
-    @Override
-    public Result<?> onlineCar(String uid) {
-        AbpWeixinConfig config= JSONObject.parseObject(redisTemplate.opsForValue().get("config").toString(),AbpWeixinConfig.class);
-        List<ParkOrderView> orderList  = businessDetailMapper.getAllOrder(uid);
-        if(orderList.size()>0){
-            for(ParkOrderView order:orderList){
-                Map<String,Object> map=new HashMap<>();
-                AbpBerthsecs berthsec = berthsecsMapper.getById(order.getBerthsecId());
-                Rates rates = new Rates();
-                AbpRates.dao.findById(berthsec.getInt("RateId")).getStr("RatePDA");
-                System.out.println("ces"+AbpRates.dao.findById(berthsec.getInt("RateId")).getStr("RatePDA"));
-                rates.rateMode = (RateModel) fromJson(AbpRates.dao.findById(berthsec.getInt("RateId")).getStr("RatePDA"),
-                        RateModel.class);
-
-                calModel = RateCalculate.ProcessRateCalculate(
-                        AbDateUtil.getDateByFormat(order.get("CarInTime").toString(), AbDateUtil.dateFormatYMDHM2), new Date(),
-                        2, order.getStr("PlateNumber"), rates, 1, new AbpMonthlyCars());
-
-                Integer berthsecId = order.getInt("berthsecId");
-                AbpBerthsecs abpBerthsVos = AbpBerthsecs.dao.QueryOrder(berthsecId);
-                Integer count = abpBerthsVos.getInt("count");
-                Integer orderCount = abpBerthsVos.getInt("orderCount");
-                map.put("count",count);
-                map.put("orderCount",orderCount);
-                order.put("carStopTime",DateTime.getTimeDifference(order.get("CarInTime").toString(),null));
-                ExtOtherAccount account = ExtOtherAccount.dao.GetAccount(openId);
-                setAttr("account", account);
-
-                DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-                try {
-                    double diff = (new Date().getTime() - df.parse(order.get("carintime").toString()).getTime()) * 0.001;
-                    map.put("Surplus",diff);
-                    map.put("Minute", (int) (diff % 3600 / 60));
-                    map.put("Hour",(int) (diff / 3600));
-                } catch (ParseException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                }
-                map.put("Money",String.format("%.2f",calModel.CalculateMoney));
-                map.put("order",order);
-                listMap.add(map);
-            }
-
-            result.success(listMap);
-            renderJson(result);
-        }else{
-            TUser tUser = TUser.dao.findByOpenId(openId);
-            renderJson(result);
-            return;
-        }
-
-        return Result.success();
-    }
+//    @Override
+//    public Result<?> onlineCar(String uid) {
+//        AbpWeixinConfig config= JSONObject.parseObject(redisTemplate.opsForValue().get("config").toString(),AbpWeixinConfig.class);
+//        List<ParkOrderView> orderList  = businessDetailMapper.getAllOrder(uid);
+//        if(orderList.size()>0){
+//            for(ParkOrderView order:orderList){
+//                Map<String,Object> map=new HashMap<>();
+//                AbpBerthsecs berthsec = berthsecsMapper.getById(order.getBerthsecId());
+//                Rates rates = new Rates();
+//                AbpRates.dao.findById(berthsec.getInt("RateId")).getStr("RatePDA");
+//                System.out.println("ces"+AbpRates.dao.findById(berthsec.getInt("RateId")).getStr("RatePDA"));
+//                rates.rateMode = (RateModel) fromJson(AbpRates.dao.findById(berthsec.getInt("RateId")).getStr("RatePDA"),
+//                        RateModel.class);
+//
+//                calModel = RateCalculate.ProcessRateCalculate(
+//                        AbDateUtil.getDateByFormat(order.get("CarInTime").toString(), AbDateUtil.dateFormatYMDHM2), new Date(),
+//                        2, order.getStr("PlateNumber"), rates, 1, new AbpMonthlyCars());
+//
+//                Integer berthsecId = order.getInt("berthsecId");
+//                AbpBerthsecs abpBerthsVos = AbpBerthsecs.dao.QueryOrder(berthsecId);
+//                Integer count = abpBerthsVos.getInt("count");
+//                Integer orderCount = abpBerthsVos.getInt("orderCount");
+//                map.put("count",count);
+//                map.put("orderCount",orderCount);
+//                order.put("carStopTime",DateTime.getTimeDifference(order.get("CarInTime").toString(),null));
+//                ExtOtherAccount account = ExtOtherAccount.dao.GetAccount(openId);
+//                setAttr("account", account);
+//
+//                DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+//                try {
+//                    double diff = (new Date().getTime() - df.parse(order.get("carintime").toString()).getTime()) * 0.001;
+//                    map.put("Surplus",diff);
+//                    map.put("Minute", (int) (diff % 3600 / 60));
+//                    map.put("Hour",(int) (diff / 3600));
+//                } catch (ParseException e) {
+//                    // TODO Auto-generated catch block
+//                    e.printStackTrace();
+//                }
+//                map.put("Money",String.format("%.2f",calModel.CalculateMoney));
+//                map.put("order",order);
+//                listMap.add(map);
+//            }
+//
+//            result.success(listMap);
+//            renderJson(result);
+//        }else{
+//            TUser tUser = TUser.dao.findByOpenId(openId);
+//            renderJson(result);
+//            return;
+//        }
+//
+//        return Result.success();
+//    }
 
     @Override
     public Result<?> getWexSDK(String url) {
