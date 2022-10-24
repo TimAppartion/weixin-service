@@ -29,4 +29,54 @@
         and AbpBusinessDetail.IsDeleted = 0
         order by CarInTime desc
     </select>
+    <select id="arrearageList" resultType="com.example.jiuzhou.user.view.ArrearageListView">
+        SELECT
+            AbpBusinessDetail.Id,
+            'true' as isChecked,
+            PlateNumber,
+            CarInTime,
+            CarOutTime,
+            Money,
+            Arrearage,
+            Status,
+            BerthsecName,
+            Prepaid,
+            BerthNumber,
+            guid
+        FROM AbpBusinessDetail WITH ( nolock )
+        RIGHT JOIN TUser ON CarNumber1 = PlateNumber OR CarNumber2 = PlateNumber OR CarNumber3 = PlateNumber
+        LEFT JOIN AbpBerthsecs ON AbpBerthsecs.Id = AbpBusinessDetail.BerthsecId
+        WHERE
+        TUser.uid=#{query.uid}
+        AND Status = 3
+        AND AbpBusinessDetail.IsDeleted = 0
+        <if test="query.plateNumber!=null and query.plateNumber!=''">
+            and  PlateNumber LIKE concat('%', #{query.plateNumber}, '%')
+        </if>
+        ORDER BY
+        CarInTime DESC
+    </select>
+    <select id="getDJOrder" resultType="com.example.jiuzhou.user.view.ArrearageListView">
+        SELECT
+            AbpBusinessDetail.Id,
+            PlateNumber,
+            CarInTime,
+            CarOutTime,
+            Money,
+            Arrearage,
+            Status,
+            BerthsecName,
+            Prepaid,
+            BerthNumber
+        FROM AbpBusinessDetail WITH ( nolock )
+        LEFT JOIN AbpBerthsecs ON AbpBerthsecs.Id = AbpBusinessDetail.BerthsecId
+        WHERE
+        Status NOT IN ( 1, 2, 4 )
+        <if test="plateNumber!=null and plateNumber!=''">
+            AND PlateNumber = #{plateNumber}
+        </if>
+        AND AbpBusinessDetail.IsDeleted = 0
+        ORDER BY
+        CarInTime DESC
+    </select>
 </mapper>

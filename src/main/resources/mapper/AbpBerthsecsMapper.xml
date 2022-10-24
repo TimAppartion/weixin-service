@@ -16,4 +16,7 @@
     <select id="getById" resultType="com.example.jiuzhou.user.model.AbpBerthsecs">
         select * from AbpBerthsecs where Id =#{id}
     </select>
+    <select id="queryOrder" resultType="com.example.jiuzhou.user.view.QueryOrderView">
+        SELECT ad.*,ae.ParkName from  (SELECT ab.Id,ab.BerthsecName,ab.ParkId,ab.count, ISNULL(ac.orderCount,0) orderCount  from (SELECT a.Id,a.BerthsecName ,a.ParkId, COUNT(b.BerthNumber) count  from  AbpBerthsecs a left join AbpBerths b on a.Id = b.BerthsecId  GROUP BY a.BerthsecName, a.ParkId,a.Id) ab  left join  (SELECT  a.Id,a.BerthsecName ,b.ParkId, COUNT(b.BerthNumber) orderCount  from  AbpBerthsecs a left join AbpBerths b on a.Id = b.BerthsecId  where b.BerthStatus = 1  GROUP BY a.BerthsecName,b.ParkId,a.Id) ac  on ab.Id = ac.Id) ad left join AbpParks ae  on ad.ParkId = ae.Id  where ad.Id = #{id}
+    </select>
 </mapper>

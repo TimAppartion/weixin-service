@@ -9,28 +9,26 @@ import java.util.Date;
 
 /**
  * @author Appartion
- * @data 2022/10/21
+ * @data 2022/10/24
  * 一入代码深似海，从此生活是路人
  */
 @Data
-public class ParkOrderView {
+public class ArrearageListView {
     private Integer Id;
-    private Integer Status;
-    private String guid;
+    private boolean isChecked;
     private String PlateNumber;
-
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date CarInTime;
-
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    private Date CarOutTime;
+    private BigDecimal Money;
+    private BigDecimal Arrearage;
+    private Integer Status;
     private String BerthsecName;
-
     private BigDecimal Prepaid;
-
     private String BerthNumber;
 
-    private Integer BerthsecId;
-
-    private Integer ParkType;
-    private String carStopTime;
+    private String guid;
 }

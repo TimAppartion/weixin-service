@@ -4,6 +4,7 @@ import com.example.jiuzhou.common.Enum.ResultEnum;
 import com.example.jiuzhou.common.utils.Result;
 import com.example.jiuzhou.user.mapper.AbpBerthsMapper;
 import com.example.jiuzhou.user.model.AbpBerthsecs;
+import com.example.jiuzhou.user.query.ArrearageQuery;
 import com.example.jiuzhou.user.query.BerthsQuery;
 import com.example.jiuzhou.user.service.AbpBerthsecsService;
 import com.example.jiuzhou.user.service.HomePageService;
@@ -99,13 +100,39 @@ public class HomePageController {
      * @param uid
      * @return
      */
-    @PostMapping("/OnlineCar")
+    @RequestMapping("/OnlineCar")
     public Result<?> onlineCar(@RequestParam(value = "uid", required = false) String uid){
 
         if(StringUtils.isEmpty(uid)){
             return Result.error(ResultEnum.MISS_DATA);
         }
         return homePageService.onlineCar(uid);
+    }
+
+    /**
+     * 欠费订单
+     * @param query
+     * @return
+     */
+    @PostMapping("/ArrearageList")
+    public Result<?> arrearage(@RequestBody ArrearageQuery query){
+        if(StringUtils.isEmpty(query.getUid())){
+            return Result.error(ResultEnum.MISS_DATA);
+        }
+        return homePageService.arrearage(query);
+    }
+
+    /**
+     * 代缴订单查询
+     * @param plateNumber
+     * @return
+     */
+    @RequestMapping("/getDJOrder")
+    public Result<?> getDJOrder(@RequestParam(value = "plateNumber", required = false) String plateNumber){
+        if(StringUtils.isEmpty(plateNumber)){
+            return Result.error(ResultEnum.MISS_DATA);
+        }
+        return homePageService.getDJOrder(plateNumber);
     }
 
 

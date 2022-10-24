@@ -4,14 +4,13 @@ import com.alibaba.fastjson.JSONObject;
 import com.example.jiuzhou.common.Enum.ResultEnum;
 import com.example.jiuzhou.common.utils.ImageUtils;
 import com.example.jiuzhou.common.utils.Result;
+import com.example.jiuzhou.user.mapper.AbpOrderEvaluateMapper;
 import com.example.jiuzhou.user.mapper.MonthCardMapper;
 import com.example.jiuzhou.user.mapper.RechargeRuleMapper;
+import com.example.jiuzhou.user.model.AbpOrderEvaluate;
 import com.example.jiuzhou.user.model.MonthCard;
 import com.example.jiuzhou.user.model.RechargeRule;
-import com.example.jiuzhou.user.query.BalancePayQuery;
-import com.example.jiuzhou.user.query.ImageQuery;
-import com.example.jiuzhou.user.query.OpinionQuery;
-import com.example.jiuzhou.user.query.WeiXinPayQuery;
+import com.example.jiuzhou.user.query.*;
 import com.example.jiuzhou.user.service.PublicBasisService;
 import com.jfinal.kit.Prop;
 import com.jfinal.kit.PropKit;
@@ -28,10 +27,7 @@ import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author Appartion
@@ -54,6 +50,10 @@ public class PublicBasisController {
 
     @Resource
     private PublicBasisService publicBasisService;
+
+    @Resource
+    private AbpOrderEvaluateMapper orderEvaluateMapper;
+
     /**
      * 账号充值规则
      * @return
@@ -127,7 +127,7 @@ public class PublicBasisController {
 
     @RequestMapping("/BalancePay")
     public Result<?> balancePay (@RequestBody BalancePayQuery query) throws ParseException {
-        if(query.getFee()==null || StringUtils.isEmpty(query.getUid()) || query.getPayFrom()==null ){
+        if(query.getFee()==null || StringUtils.isEmpty(query.getUid()) ){
             return Result.error(ResultEnum.MISS_DATA);
         }
         return publicBasisService.balancePay(query);
@@ -149,15 +149,33 @@ public class PublicBasisController {
     }
 
     @RequestMapping(value = "/image")
-    private List<String> getImageById(@RequestBody ImageQuery query) throws IOException {
+    public List<String> getImageById(@RequestBody ImageQuery query) throws IOException {
         String where = "D:";
         List<String>paths=new ArrayList<>();
         String path = "/JiuZhou/image/"+DateFormatUtils.format(System.currentTimeMillis(), "yyyyMMddHHmmss");
         for(Integer i=0;i<query.getImageList().size();i++){
-            ;
             ImageUtils.generateImage(query.getImageList().get(i),where+path+i+".jpg");
             paths.add(path+i+".jpg");
         }
         return paths;
+    }
+
+    /**
+     * 停车订单评价
+     * @param query
+     * @return
+     */
+    @RequestMapping("/OrderValuate")
+    public Result<?> orderValuate(@RequestBody OrderValuateQuery query){
+        if(StringUtils.isEmpty(query.getContent())||StringUtils.isEmpty(query.getEvaluate())){
+            return Result.error(ResultEnum.MISS_DATA);
+        }
+        AbpOrderEvaluate abpOrderEvaluate=new AbpOrderEvaluate();
+        abpOrderEvaluate.setId(UUID.randomUUID().toString().replace("-",""));
+        abpOrderEvaluate.setEvaluate(query.getEvaluate());
+        abpOrderEvaluate.setContent(query.getContent());
+        abpOrderEvaluate.setOrderId(query.getId());
+        orderEvaluateMapper.insert(abpOrderEvaluate);
+        return Result.success();
     }
 }

@@ -1,3 +1,6 @@
+# 整个框架采用SpringBoot+mybatis架构，为日后扩展分布式微服务也搭建了SpringCloud,注册中心采用eureka
+# 除开环境搭建外，接口开发表设计，基本采用该服务原本设计甚至等量迁移
+
 server:
   port: 80  #端口号8088
 eureka:

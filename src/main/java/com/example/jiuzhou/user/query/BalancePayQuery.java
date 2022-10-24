@@ -21,5 +21,4 @@ public class BalancePayQuery {
     private Integer month;
     private Boolean isMonthlyRenewal;
     private Integer couponId;
-    private Integer payFrom;
 }

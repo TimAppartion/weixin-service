@@ -2,15 +2,20 @@ package com.example.jiuzhou.user.service.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.example.jiuzhou.common.utils.Result;
-import com.example.jiuzhou.common.utils.SingUtil;
+import com.example.jiuzhou.common.utils.*;
 import com.example.jiuzhou.user.mapper.AbpBerthsecsMapper;
 import com.example.jiuzhou.user.mapper.AbpBusinessDetailMapper;
-import com.example.jiuzhou.user.model.AbpBerthsecs;
-import com.example.jiuzhou.user.model.AbpWeixinConfig;
+import com.example.jiuzhou.user.mapper.AbpRatesMapper;
+import com.example.jiuzhou.user.mapper.TUserMapper;
+import com.example.jiuzhou.user.model.*;
+import com.example.jiuzhou.user.model.fee.RateCalculateModel;
+import com.example.jiuzhou.user.model.fee.RateModel;
 import com.example.jiuzhou.user.model.fee.Rates;
+import com.example.jiuzhou.user.query.ArrearageQuery;
 import com.example.jiuzhou.user.service.HomePageService;
+import com.example.jiuzhou.user.view.ArrearageListView;
 import com.example.jiuzhou.user.view.ParkOrderView;
+import com.example.jiuzhou.user.view.QueryOrderView;
 import com.jfinal.weixin.sdk.utils.HttpUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,60 +44,58 @@ public class HomePageServiceImpl implements HomePageService {
     private AbpBusinessDetailMapper businessDetailMapper;
     @Resource
     private AbpBerthsecsMapper berthsecsMapper;
+    @Resource
+    private TUserMapper tUserMapper;
+    @Resource
+    private AbpRatesMapper abpRatesMapper;
 
-//    @Override
-//    public Result<?> onlineCar(String uid) {
+    @Override
+    public Result<?> onlineCar(String uid) {
 //        AbpWeixinConfig config= JSONObject.parseObject(redisTemplate.opsForValue().get("config").toString(),AbpWeixinConfig.class);
-//        List<ParkOrderView> orderList  = businessDetailMapper.getAllOrder(uid);
-//        if(orderList.size()>0){
-//            for(ParkOrderView order:orderList){
-//                Map<String,Object> map=new HashMap<>();
-//                AbpBerthsecs berthsec = berthsecsMapper.getById(order.getBerthsecId());
-//                Rates rates = new Rates();
-//                AbpRates.dao.findById(berthsec.getInt("RateId")).getStr("RatePDA");
-//                System.out.println("ces"+AbpRates.dao.findById(berthsec.getInt("RateId")).getStr("RatePDA"));
-//                rates.rateMode = (RateModel) fromJson(AbpRates.dao.findById(berthsec.getInt("RateId")).getStr("RatePDA"),
-//                        RateModel.class);
-//
-//                calModel = RateCalculate.ProcessRateCalculate(
-//                        AbDateUtil.getDateByFormat(order.get("CarInTime").toString(), AbDateUtil.dateFormatYMDHM2), new Date(),
-//                        2, order.getStr("PlateNumber"), rates, 1, new AbpMonthlyCars());
-//
-//                Integer berthsecId = order.getInt("berthsecId");
-//                AbpBerthsecs abpBerthsVos = AbpBerthsecs.dao.QueryOrder(berthsecId);
-//                Integer count = abpBerthsVos.getInt("count");
-//                Integer orderCount = abpBerthsVos.getInt("orderCount");
-//                map.put("count",count);
-//                map.put("orderCount",orderCount);
-//                order.put("carStopTime",DateTime.getTimeDifference(order.get("CarInTime").toString(),null));
-//                ExtOtherAccount account = ExtOtherAccount.dao.GetAccount(openId);
-//                setAttr("account", account);
-//
-//                DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-//                try {
-//                    double diff = (new Date().getTime() - df.parse(order.get("carintime").toString()).getTime()) * 0.001;
-//                    map.put("Surplus",diff);
-//                    map.put("Minute", (int) (diff % 3600 / 60));
-//                    map.put("Hour",(int) (diff / 3600));
-//                } catch (ParseException e) {
-//                    // TODO Auto-generated catch block
-//                    e.printStackTrace();
-//                }
-//                map.put("Money",String.format("%.2f",calModel.CalculateMoney));
-//                map.put("order",order);
-//                listMap.add(map);
-//            }
-//
-//            result.success(listMap);
-//            renderJson(result);
-//        }else{
-//            TUser tUser = TUser.dao.findByOpenId(openId);
-//            renderJson(result);
-//            return;
-//        }
-//
-//        return Result.success();
-//    }
+        List<Map<String,Object>> listMap = new ArrayList<>();
+        List<ParkOrderView> orderList  = businessDetailMapper.getAllOrder(uid);
+        RateCalculateModel calModel = new RateCalculateModel();
+        if(orderList.size()>0){
+            for(ParkOrderView order:orderList) {
+                Map<String, Object> map = new HashMap<>();
+                AbpBerthsecs berthsec = berthsecsMapper.getById(order.getBerthsecId());
+                Rates rates = new Rates();
+                AbpRates abpRates=abpRatesMapper.getById(berthsec.getRateId());
+
+                rates.rateMode = JSONObject.parseObject(abpRates.getRatePDA(),RateModel.class);
+
+                calModel = RateCalculate.ProcessRateCalculate(
+                        AbDateUtil.getDateByFormat(order.getCarInTime().toString(), AbDateUtil.dateFormatYMDHM2), new Date(),
+                        2, order.getPlateNumber(), rates, 1, new AbpMonthlyCars());
+
+                Integer berthsecId = order.getBerthsecId();
+                QueryOrderView orderView =berthsecsMapper.queryOrder(berthsecId);
+                map.put("count",orderView.getCount());
+                map.put("orderCount",orderView.getOrderCount());
+                order.setCarStopTime(DateTimeUtils.getTimeDifference(order.getCarInTime().toString(),null));
+
+
+                DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                try {
+                    double diff = (new Date().getTime() - df.parse(order.getCarInTime().toString()).getTime()) * 0.001;
+                    map.put("Surplus",diff);
+                    map.put("Minute", (int) (diff % 3600 / 60));
+                    map.put("Hour",(int) (diff / 3600));
+                } catch (ParseException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+                map.put("Money",String.format("%.2f",calModel.CalculateMoney));
+                map.put("order",order);
+                listMap.add(map);
+            }
+
+            return Result.success(listMap);
+        }else{
+            TUser tUser = tUserMapper.getByUid(uid);
+            return Result.success(tUser);
+        }
+    }
 
     @Override
     public Result<?> getWexSDK(String url) {
@@ -122,6 +125,18 @@ public class HomePageServiceImpl implements HomePageService {
         map.put("signature", signature);
         map.put("jsapi_ticket", jsapi_ticket);
         return Result.success(map);
+    }
+
+    @Override
+    public Result<?> arrearage(ArrearageQuery query) {
+        List<ArrearageListView> list=businessDetailMapper.arrearageList(query);
+        return Result.success(list);
+    }
+
+    @Override
+    public Result<?> getDJOrder(String plateNumber) {
+        List<ArrearageListView> list=businessDetailMapper.getDJOrder(plateNumber);
+        return Result.success(list);
     }
 
     public String getAccessToken(){

@@ -1,6 +1,7 @@
 package com.example.jiuzhou.user.service;
 
 import com.example.jiuzhou.common.utils.Result;
+import com.example.jiuzhou.user.query.ArrearageQuery;
 
 /**
  * @author Appartion
@@ -21,4 +22,18 @@ public interface HomePageService {
      * @return
      */
     Result<?> getWexSDK(String url);
+
+    /**
+     * 欠费订单
+     * @param query
+     * @return
+     */
+    Result<?> arrearage(ArrearageQuery query);
+
+    /**
+     * 代缴车费页面
+     * @param plateNumber
+     * @return
+     */
+    Result<?>getDJOrder(String plateNumber);
 }
