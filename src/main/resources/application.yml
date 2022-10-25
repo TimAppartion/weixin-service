@@ -64,5 +64,29 @@ logging:
   config: classpath:logback.xml
 
 
+jackson:
+  # 全局设置@JsonFormat的格式pattern
+  date-format: yyyy-MM-dd HH:mm:ss
+  # 当地时区
+  locale: zh
+  # 设置全局时区
+  time-zone: GMT+8
+  serialization:
+    #格式化输出
+    indent_output: true
+  #      #忽略无法转换的对象
+  #      fail_on_empty_beans: false
+  #    deserialization:
+  #      #允许对象忽略json中不存在的属性
+  #      fail_on_unknown_properties: false
+  parser:
+    #允许出现特殊字符和转义符
+    allow_unquoted_control_chars: true
+    #允许出现单引号
+    allow_single_quotes: true
+#    #如果加该注解的字段为null,那么就不序列化这个字段了
+#    default-property-inclusion: NON_EMPTY
+
+
 
 

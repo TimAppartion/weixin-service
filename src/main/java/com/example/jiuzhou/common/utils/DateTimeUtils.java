@@ -31,7 +31,7 @@ public class DateTimeUtils  {
             endTime=(df.format(new Date()));
         }
         try{
-            Date start=df.parse(startTime);
+            Date start=AbDateUtil.getDateByCst(startTime, AbDateUtil.dateFormatYMDHM2);
             Date end=df.parse(endTime);
             long difference=end.getTime()-start.getTime();
             long day=difference/(24*60*60*1000);

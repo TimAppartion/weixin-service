@@ -26,6 +26,7 @@ import javax.annotation.Resource;
 import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.text.ParseException;
 import java.util.*;
 
@@ -176,6 +177,43 @@ public class PublicBasisController {
         abpOrderEvaluate.setContent(query.getContent());
         abpOrderEvaluate.setOrderId(query.getId());
         orderEvaluateMapper.insert(abpOrderEvaluate);
+        return Result.success();
+    }
+
+    /**
+     * 停车记录发送
+     * @param query
+     * @return
+     */
+    @PostMapping("/SaveOnlineCar")
+    public Result<?> saveOnlineCar(@RequestBody SaveOnlineCarQuery query){
+        if(StringUtils.isEmpty(query.getGuid()) || StringUtils.isEmpty(query.getOpenId())){
+            return Result.error(ResultEnum.MISS_DATA);
+        }
+        return publicBasisService.saveOnlineCar(query);
+    }
+
+    /**
+     * 在停订单 微信支付后消息推送
+     * @param query
+     * @return
+     */
+    @PostMapping("/OnlineCarSendMsg")
+    public Result<?> onlineCarSendMsg(@RequestBody OnlineCarSendMsgQuery query){
+        return publicBasisService.onlineCarSendMsg(query);
+    }
+
+    /**
+     * 零元支付
+     * @param guid
+     * @return
+     */
+    @RequestMapping("/PayZero")
+    public Result<?> payZero(@RequestParam(value = "guid", required = false) String guid){
+        if(StringUtils.isEmpty(guid)){
+            return Result.error(ResultEnum.MISS_DATA);
+        }
+        publicBasisService.carOut(guid,new BigDecimal(0));
         return Result.success();
     }
 }

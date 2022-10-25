@@ -13,7 +13,7 @@
             AbpBusinessDetail.Status,
             AbpBusinessDetail.guid,
             AbpBusinessDetail.PlateNumber,
-            AbpBusinessDetail.CarInTime,
+            CONVERT(varchar(100), AbpBusinessDetail.CarInTime, 20) as CarInTime,
             AbpBerthsecs.BerthsecName,
             AbpBusinessDetail.Prepaid,
             AbpBusinessDetail.BerthNumber,

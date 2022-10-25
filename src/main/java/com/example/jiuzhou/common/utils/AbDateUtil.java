@@ -1,10 +1,12 @@
 package com.example.jiuzhou.common.utils;
 
+import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.Locale;
 
 /**
  * @author Appartion
@@ -67,6 +69,21 @@ public class AbDateUtil {
         return date;
     }
 
+    public static Date getDateByCst(String strDate,String format){
+        SimpleDateFormat simpleDateFormat=new SimpleDateFormat(format);
+        try {
+            DateFormat cst = new SimpleDateFormat(format);
+            DateFormat gmt = new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy", Locale.ENGLISH);
+            Date dateTime = gmt.parse(strDate);
+            String dateString = cst.format(dateTime);
+            return simpleDateFormat.parse(dateString);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+
+        return null;
+    }
     /**
      * 描述：获取milliseconds表示的日期时间的字符串.
      *

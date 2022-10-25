@@ -1,9 +1,7 @@
 package com.example.jiuzhou.user.service;
 
 import com.example.jiuzhou.common.utils.Result;
-import com.example.jiuzhou.user.query.BalancePayQuery;
-import com.example.jiuzhou.user.query.OpinionQuery;
-import com.example.jiuzhou.user.query.WeiXinPayQuery;
+import com.example.jiuzhou.user.query.*;
 
 import java.math.BigDecimal;
 import java.text.ParseException;
@@ -60,4 +58,18 @@ public interface PublicBasisService {
      * @return
      */
     Result<?> insertOpinion(OpinionQuery query);
+
+    /**
+     * 停车记录发送短信
+     * @param query
+     * @return
+     */
+    Result<?> saveOnlineCar(SaveOnlineCarQuery query);
+
+    /**
+     * 在停订单 微信支付后消息推送
+     * @param query
+     * @return
+     */
+    Result<?> onlineCarSendMsg(OnlineCarSendMsgQuery query);
 }

@@ -8,9 +8,7 @@ import com.example.jiuzhou.common.utils.Result;
 import com.example.jiuzhou.user.entity.PayAttach;
 import com.example.jiuzhou.user.mapper.*;
 import com.example.jiuzhou.user.model.*;
-import com.example.jiuzhou.user.query.BalancePayQuery;
-import com.example.jiuzhou.user.query.OpinionQuery;
-import com.example.jiuzhou.user.query.WeiXinPayQuery;
+import com.example.jiuzhou.user.query.*;
 import com.example.jiuzhou.user.service.CouponsService;
 import com.example.jiuzhou.user.service.PublicBasisService;
 import com.example.jiuzhou.user.service.PushMessageService;
@@ -99,6 +97,8 @@ public class PublicBasisServiceImpl implements PublicBasisService {
     @Resource
     private OpinionMapper opinionMapper;
 
+    @Resource
+    private WeiXinPayAttachMapper weiXinPayAttachMapper;
     @Override
     public Result<?> WeiXinPay(WeiXinPayQuery query) {
         String device_info= UUID.randomUUID().toString().replace("-","");
@@ -148,7 +148,22 @@ public class PublicBasisServiceImpl implements PublicBasisService {
         params.put("body",config.getAppName());
         params.put("out_trade_no",out_trade_no);
         params.put("total_fee",String.valueOf((int) (Float.valueOf(query.getFee().toString()) * 100)));
-        params.put("attach", JsonKit.toJson(new PayAttach(out_trade_no,query.getType(),3, query.getGuid(),query.getCouponId()!=null?query.getCouponId().toString():"",query.getFee().toString()))+"|"+query.getType());
+
+
+        String payAttachId=UUID.randomUUID().toString().replace("-","");
+        WeiXinPayAttach weiXinPayAttach=new WeiXinPayAttach();
+        weiXinPayAttach.setId(payAttachId);
+        weiXinPayAttach.setOrderId(out_trade_no);
+        weiXinPayAttach.setType(query.getType());
+        weiXinPayAttach.setCount(3);
+        weiXinPayAttach.setGuid(query.getGuid());
+        weiXinPayAttach.setCouponId(query.getCouponId()!=null?query.getCouponId():null);
+        weiXinPayAttach.setFee(query.getFee());
+        weiXinPayAttachMapper.insert(weiXinPayAttach);
+//        new PayAttach(out_trade_no,query.getType(),3, query.getGuid(),query.getCouponId()!=null?query.getCouponId().toString():"",query.getFee().toString()))+"|"+query.getType()
+
+
+        params.put("attach", payAttachId);
         params.put("spbill_create_ip",ip);
         params.put("trade_type", PaymentApi.TradeType.JSAPI.name());
         params.put("nonce_str",System.currentTimeMillis()/1000+"");
@@ -207,7 +222,10 @@ public class PublicBasisServiceImpl implements PublicBasisService {
         order.setBank_type(params.get("bank_type"));
         // 微信支付订单号
         order.setTransaction_id(params.get("transaction_id"));
-        order.setAttach(params.get("attach"));
+        String attachId = params.get("attach");
+        WeiXinPayAttach payAttach=weiXinPayAttachMapper.getById(attachId);
+
+        order.setAttach(JSONObject.toJSONString(payAttach));
         order.setTime_end( params.get("time_end"));
         order.setCouresCount(0);
         order.setUrl("");
@@ -215,7 +233,7 @@ public class PublicBasisServiceImpl implements PublicBasisService {
         ///////////////////////////// 以下是附加参数///////////////////////////////////
         //月租车唯一标识id
         String device_info=params.get("device_info");
-        String attach = params.get("attach");
+
         String fee_type = params.get("fee_type");
         String is_subscribe = params.get("is_subscribe");
         String err_code = params.get("err_code");
@@ -226,23 +244,27 @@ public class PublicBasisServiceImpl implements PublicBasisService {
         // 注意重复通知的情况，同一订单号可能收到多次通知，请注意一定先判断订单状态
         if(weixinorders==null && payKit){
             if("SUCCESS".equals(order.getResult_code())){
-                log.info("更新订单信息:{}",attach);
-                int courseId = Integer.parseInt(attach.split("\\|")[1]);
+                log.info("更新订单信息:{}",payAttach);
+                int courseId = payAttach.getType();
                 weixinordersMapper.insert(order);
 
-                String guid = attach.replace("\"guid\":\"", "|").split("\\|")[1].split("\"")[0];
-                String couponId = attach.replace("\"couponId\":\"", "|").split("\\|")[1].split("\"")[0];
+                String guid = payAttach.getGuid();
+                Integer couponId = payAttach.getCouponId();
                 //优惠前的总金额
-                String fee=	attach.replace("\"fee\":\"", "|").split("\\|")[1].split("\"")[0];
+                BigDecimal fee=	payAttach.getFee();
 
                 //先使用优惠券
-                if(StringUtils.isNotEmpty(couponId)){
-                    couponsService.useCoupon(Integer.parseInt(couponId),2);
+                if(couponId!=null){
+                    couponsService.useCoupon(couponId,2);
                 }
 
 
                 if(courseId == 4 && StringUtils.isNotEmpty(guid)){//处理在线补缴
-                    updateOrder(guid,new BigDecimal(fee) );
+
+                    String[] guids=guid.split(",");
+                    for(int i=0;i<guids.length;i++){
+                        updateOrder(guids[i],fee );
+                    }
 
                     ExtOtherAccount account = extOtherAccountMapper.getByUid(order.getUid());
                     String tf = String.valueOf(Double.valueOf(order.getTotal_fee())*0.01);
@@ -258,17 +280,17 @@ public class PublicBasisServiceImpl implements PublicBasisService {
                     deductionRecords.setUserId(MONEUSERID);
                     deductionRecords.setCardNo(account.getCardNo());
                     deductionRecords.setBeginMoney(account.getWallet());
-                    deductionRecords.setEndMoney(new BigDecimal(fee));
+                    deductionRecords.setEndMoney(fee);
                     deductionRecords.setPayFrom(1);
                     abpDeductionRecordsMapper.insetOne(deductionRecords);
                 }
                 if(courseId == 5){//账号充值
                     log.info("自主结单，在线支付");
-                    this.saveRecharge(new BigDecimal(fee),order.getUid());
+                    this.saveRecharge(fee,order.getUid());
                 }
                 if(courseId == 3) {//自主结单
                     log.info("自主结单");
-                    this.carOut(guid,new BigDecimal(fee));
+                    this.carOut(guid,fee);
                     ExtOtherAccount account = extOtherAccountMapper.getByUid(order.getUid());
                     String tf = String.valueOf(Double.valueOf(order.getTotal_fee())*0.01);
                     AbpDeductionRecords deductionRecords=new AbpDeductionRecords();
@@ -345,12 +367,15 @@ public class PublicBasisServiceImpl implements PublicBasisService {
         remoteGuids.setIsActive(0);
         remoteGuids.setBerthsecId(businessDetail.getBerthsecId());
         remoteGuids.setCreatorUserId(0);
-        abpRemoteGuidsMapper.insert(remoteGuids);
+        abpRemoteGuidsMapper.insertOne(remoteGuids);
         //修改泊位表状态
         AbpBerths berths = abpBerthsMapper.getByGuid(businessDetail.getGuid());
-        berths.setOutCarTime(time);
-        berths.setBerthStatus("2");
-        abpBerthsMapper.updateByPrimaryKey(berths);
+        if(berths!=null){
+            berths.setOutCarTime(time);
+            berths.setBerthStatus("2");
+            abpBerthsMapper.updateByPrimaryKey(berths);
+        }
+
     }
 
     @Override
@@ -523,6 +548,21 @@ public class PublicBasisServiceImpl implements PublicBasisService {
         return Result.success();
     }
 
+    @Override
+    public Result<?> saveOnlineCar(SaveOnlineCarQuery query) {
+        AbpBusinessDetail businessDetail=abpBusinessDetailMapper.getByGuid(query.getGuid());
+        return Result.success(pushMessageService.sendMsgOrder(query.getOpenId(),businessDetail.getMoney(),businessDetail.getPlateNumber(),businessDetail.getBerthNumber(),StopTimes(businessDetail.getStopTime())));
+
+    }
+
+    @Override
+    public Result<?> onlineCarSendMsg(OnlineCarSendMsgQuery query) {
+        TUser tUser=tUserMapper.getByOpenId(query.getOpenId());
+        String stopTime=query.getDay()+"天"+query.getHours()+"小时"+query.getMinute()+"分";
+        AbpBusinessDetail businessDetail=abpBusinessDetailMapper.getByGuid(query.getGuid());
+        return Result.success(pushMessageService.SendMsgOrderOut(query.getOpenId(),businessDetail.getPlateNumber(),businessDetail.getBerthNumber(),"微信支付",businessDetail.getMoney(),stopTime,tUser.getTel(),businessDetail.getCarOutTime()));
+    }
+
 
     public void updateOrder(String guid,BigDecimal money){
         //取系统配置信息
@@ -612,5 +652,18 @@ public class PublicBasisServiceImpl implements PublicBasisService {
             }
         }
         return Result.success();
+    }
+
+    private String StopTimes(int StopTime) {
+        if (StopTime == 0)
+            return "0分钟";
+        String dateDiff = "";
+        if (StopTime >= 1440)// 判断是否大于24小时
+        {
+            dateDiff = (StopTime / 1400) + "天" + ((StopTime % 1400) / 60) + "小时" + ((StopTime % 1400) % 60) + "分钟";
+        } else {
+            dateDiff = (StopTime / 60) + "小时" + (StopTime % 60) + "分钟";
+        }
+        return dateDiff;
     }
 }

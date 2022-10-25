@@ -64,8 +64,9 @@ public class HomePageServiceImpl implements HomePageService {
 
                 rates.rateMode = JSONObject.parseObject(abpRates.getRatePDA(),RateModel.class);
 
+                order.setCarInTime(AbDateUtil.getDateByCst(order.getCarInTime().toString(), AbDateUtil.dateFormatYMDHM2));
                 calModel = RateCalculate.ProcessRateCalculate(
-                        AbDateUtil.getDateByFormat(order.getCarInTime().toString(), AbDateUtil.dateFormatYMDHM2), new Date(),
+                       order.getCarInTime(), new Date(),
                         2, order.getPlateNumber(), rates, 1, new AbpMonthlyCars());
 
                 Integer berthsecId = order.getBerthsecId();
@@ -77,11 +78,11 @@ public class HomePageServiceImpl implements HomePageService {
 
                 DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
                 try {
-                    double diff = (new Date().getTime() - df.parse(order.getCarInTime().toString()).getTime()) * 0.001;
+                    double diff = (new Date().getTime() - order.getCarInTime().getTime()) * 0.001;
                     map.put("Surplus",diff);
                     map.put("Minute", (int) (diff % 3600 / 60));
                     map.put("Hour",(int) (diff / 3600));
-                } catch (ParseException e) {
+                } catch (Exception e) {
                     // TODO Auto-generated catch block
                     e.printStackTrace();
                 }
@@ -92,8 +93,7 @@ public class HomePageServiceImpl implements HomePageService {
 
             return Result.success(listMap);
         }else{
-            TUser tUser = tUserMapper.getByUid(uid);
-            return Result.success(tUser);
+            return Result.success();
         }
     }
 

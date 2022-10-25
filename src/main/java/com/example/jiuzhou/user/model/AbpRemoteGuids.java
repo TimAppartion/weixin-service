@@ -7,6 +7,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import javax.persistence.Column;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
+import javax.persistence.Table;
 import java.util.Date;
 
 /**
@@ -15,6 +16,7 @@ import java.util.Date;
  * 一入代码深似海，从此生活是路人
  */
 @Data
+@Table(name = "AbpRemoteGuids")
 public class AbpRemoteGuids {
 
     @javax.persistence.Id

@@ -5,6 +5,9 @@
 
 <mapper namespace="com.example.jiuzhou.user.mapper.AbpRemoteGuidsMapper">
     <insert id="insertOne">
-        insert
+        INSERT INTO AbpRemoteGuids
+        ( BusinessDetailGuid,CreationTime,CreatorUserId,IsActive,BerthsecId,DeviceCode,EmployeeId,UpdateTime )
+        VALUES
+        ( #{query.BusinessDetailGuid},#{query.CreationTime},#{query.CreatorUserId},#{query.IsActive},#{query.BerthsecId},#{query.DeviceCode},#{query.EmployeeId},#{query.UpdateTime} )
     </insert>
 </mapper>
