@@ -2,6 +2,8 @@ package com.example.jiuzhou.user.model;
 
 import lombok.Data;
 
+import javax.persistence.Column;
+import javax.persistence.Id;
 import javax.persistence.Table;
 
 /**
@@ -12,8 +14,16 @@ import javax.persistence.Table;
 @Data
 @Table(name = "AbpOrderEvaluate")
 public class AbpOrderEvaluate {
+    @javax.persistence.Id
+    @Column(name = "Id")
     private String Id;
+
+    @Column(name = "Evaluate")
     private String Evaluate;
+
+    @Column(name = "OrderId")
     private String OrderId;
+
+    @Column(name = "Content")
     private String Content;
 }

@@ -10,6 +10,6 @@ import lombok.Data;
 @Data
 public class OrderValuateQuery {
     private String id;
-    private String Evaluate;
-    private String Content;
+    private String evaluate;
+    private String content;
 }

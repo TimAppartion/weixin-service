@@ -79,6 +79,7 @@ public class OauthController {
 
     @GetMapping("/sendRegSMS")
     public Result<?> sendRegSMS(@Validated @ModelAttribute OauthQuery query){
+        log.info("短信发送：{}",query);
         String code = SubMailUtils.random(6, SubMailUtils.RandomType.INT);
         // String code = "123456";
         int res_code = -9;

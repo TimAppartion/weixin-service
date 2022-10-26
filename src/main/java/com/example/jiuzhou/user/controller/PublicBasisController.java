@@ -168,7 +168,7 @@ public class PublicBasisController {
      */
     @RequestMapping("/OrderValuate")
     public Result<?> orderValuate(@RequestBody OrderValuateQuery query){
-        if(StringUtils.isEmpty(query.getContent())||StringUtils.isEmpty(query.getEvaluate())){
+        if(StringUtils.isEmpty(query.getEvaluate())){
             return Result.error(ResultEnum.MISS_DATA);
         }
         AbpOrderEvaluate abpOrderEvaluate=new AbpOrderEvaluate();

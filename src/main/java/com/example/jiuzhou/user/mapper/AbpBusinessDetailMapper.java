@@ -20,5 +20,5 @@ public interface AbpBusinessDetailMapper extends Mapper<AbpBusinessDetail> {
 
     List<ArrearageListView> arrearageList(@Param("query")ArrearageQuery query);
 
-    List<ArrearageListView> getDJOrder(String plateNumber);
+    List<ArrearageListView> getDJOrder(@Param("plateNumber") String plateNumber);
 }

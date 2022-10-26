@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.jiuzhou.user.mapper.RecordMapper">
+    <select id="getListOnlineOrder" resultType="com.example.jiuzhou.user.view.RecordView">
+        SELECT
+        b.*
+
+        FROM
+        (
+        SELECT TOP
+        30 a.*
+        FROM
+        (
+        SELECT
+        AbpBusinessDetail.Id,
+        AbpBusinessDetail.CarPayTime,
+        AbpBusinessDetail.Status,
+        AbpBusinessDetail.CarType,
+        AbpBusinessDetail.BerthsecId ,
+        AbpBusinessDetail.guid,
+        PlateNumber,
+        CarInTime,
+        CarOutTime,
+        BerthsecName,
+        Prepaid,
+        ISNULL( Money, 0 ) Money,
+        BerthNumber,
+        RateId,
+        AbpOrderEvaluate.Evaluate,
+        AbpOrderEvaluate.Content,
+        ap.ParkType
+        FROM
+        AbpBusinessDetail WITH ( nolock )
+        LEFT JOIN AbpOrderEvaluate ON AbpBusinessDetail.Id = AbpOrderEvaluate.OrderId
+        RIGHT JOIN TUser ON CarNumber1 = PlateNumber
+        OR CarNumber2 = PlateNumber
+        OR CarNumber3 = PlateNumber
+        LEFT JOIN AbpBerthsecs ON AbpBerthsecs.Id = AbpBusinessDetail.BerthsecId
+        LEFT JOIN AbpParks ap ON ap.Id= AbpBusinessDetail.ParkId
+        WHERE
+        TUser.uid = #{query.uid}
+        <if test="query.startTime!=null">
+            and CarInTime>=#{query.startTime}
+        </if>
+        <if test="query.endTime!=null">
+            and CarOutTime <![CDATA[<=]]> #{query.endTime}
+        </if>
+        AND AbpBusinessDetail.IsDeleted = 0
+        AND AbpBusinessDetail.Status != 1
+        ) a
+        ORDER BY
+        a.CarInTime DESC
+        ) b
+    </select>
+</mapper>

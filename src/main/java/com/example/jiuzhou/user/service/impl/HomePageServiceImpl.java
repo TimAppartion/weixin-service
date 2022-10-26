@@ -136,7 +136,11 @@ public class HomePageServiceImpl implements HomePageService {
     @Override
     public Result<?> getDJOrder(String plateNumber) {
         List<ArrearageListView> list=businessDetailMapper.getDJOrder(plateNumber);
-        return Result.success(list);
+        if(list.size()>0) {
+            return Result.success(list);
+        }else {
+            return Result.error("未查询到车辆信息");
+        }
     }
 
     public String getAccessToken(){

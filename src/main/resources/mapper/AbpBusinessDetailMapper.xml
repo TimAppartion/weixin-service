@@ -67,7 +67,8 @@
             Status,
             BerthsecName,
             Prepaid,
-            BerthNumber
+            BerthNumber,
+            guid
         FROM AbpBusinessDetail WITH ( nolock )
         LEFT JOIN AbpBerthsecs ON AbpBerthsecs.Id = AbpBusinessDetail.BerthsecId
         WHERE
