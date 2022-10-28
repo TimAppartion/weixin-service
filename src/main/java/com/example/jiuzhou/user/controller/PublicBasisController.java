@@ -12,10 +12,10 @@ import com.example.jiuzhou.user.model.MonthCard;
 import com.example.jiuzhou.user.model.RechargeRule;
 import com.example.jiuzhou.user.query.*;
 import com.example.jiuzhou.user.service.PublicBasisService;
+import com.jfinal.i18n.Res;
 import com.jfinal.kit.Prop;
 import com.jfinal.kit.PropKit;
 import com.jfinal.weixin.sdk.kit.PaymentKit;
-import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.time.DateFormatUtils;
@@ -27,6 +27,9 @@ import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.text.ParseException;
 import java.util.*;
 
@@ -144,9 +147,13 @@ public class PublicBasisController {
 
 
     @RequestMapping("/test")
-    public Result<?> test(@RequestBody JSONObject jsonObject){
-        log.info("test:{}",jsonObject);
-        return Result.success(jsonObject);
+    public Result<?> test() throws NoSuchAlgorithmException {
+//        log.info("data:{}",data);
+        String data="blog";
+        MessageDigest md5Utils = MessageDigest.getInstance("MD5");
+        byte[] var=data.getBytes(StandardCharsets.UTF_8);
+        return Result.success(md5Utils.digest(var));
+//        return Result.success(jsonObject);
     }
 
     @RequestMapping(value = "/image")
