@@ -11,5 +11,6 @@ import tk.mybatis.mapper.common.Mapper;
  */
 public interface WeixinordersMapper extends Mapper<Weixinorders> {
 
+    void insertOne(@Param("query")Weixinorders query);
     Weixinorders getByTransactionId(@Param("transactionId")String transactionId);
 }

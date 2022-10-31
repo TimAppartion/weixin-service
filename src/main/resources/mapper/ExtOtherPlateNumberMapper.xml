@@ -16,7 +16,7 @@
             c.CarType as carType,
             c.Authentication as authentication
         from TUser a
-        left join ExtOtherAccount b on a.tel = b.Telephone
+        left join ExtOtherAccount b on a.uid = b.uid
         left join  ExtOtherPlateNumber c on b.Id = c.AssignedOtherAccountId
         where a.uid = #{uid}
     </select>

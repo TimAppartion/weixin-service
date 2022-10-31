@@ -9,10 +9,7 @@ import com.example.jiuzhou.common.utils.Result;
 import com.example.jiuzhou.user.mapper.AbpDeductionRecordsMapper;
 import com.example.jiuzhou.user.mapper.ExtOtherAccountMapper;
 import com.example.jiuzhou.user.mapper.TUserMapper;
-import com.example.jiuzhou.user.model.AbpDeductionRecords;
-import com.example.jiuzhou.user.model.AbpWeixinConfig;
-import com.example.jiuzhou.user.model.ExtOtherAccount;
-import com.example.jiuzhou.user.model.TUser;
+import com.example.jiuzhou.user.model.*;
 import com.example.jiuzhou.user.query.OauthQuery;
 import com.example.jiuzhou.user.service.WeiXinOauthService;
 import com.jfinal.kit.Prop;
@@ -22,8 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
-
-
+import tk.mybatis.mapper.entity.Example;
 
 
 import javax.annotation.Resource;
@@ -31,6 +27,7 @@ import javax.annotation.Resource;
 import java.math.BigDecimal;
 
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -108,6 +105,14 @@ public class WeiXinOauthServiceImpl implements WeiXinOauthService {
     @Override
     public Result<?> bindPhone(OauthQuery query) {
         TUser tUser=tUserMapper.getByUid(query.getUid());
+        Example example = new Example(TUser.class);
+        Example.Criteria criteria = example.createCriteria();
+        criteria.andEqualTo("tel", query.getMobile());
+
+        List<TUser> tUsersByCar = tUserMapper.selectByExample(example);
+        if(tUsersByCar.size()>0){
+            return Result.error(ResultEnum.ERROR,"用户手机号已经被绑定");
+        }
         if(null!=tUser){
             tUser.setTel(query.getMobile());
             tUserMapper.updateByPrimaryKey(tUser);

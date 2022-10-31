@@ -24,7 +24,12 @@ import tk.mybatis.mapper.entity.Example;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
+import java.io.IOException;
+import java.security.MessageDigest;
+import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -47,6 +52,9 @@ public class OauthController {
 
     private static final Prop prop = PropKit.use("weixin.properties");
     private static Integer TENANTID=Integer.valueOf(prop.get("tenantId"));
+    private static String TOKEN=prop.get("token");
+    private static final char[] HEX_DIGITS = {'0', '1', '2', '3', '4', '5','6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
+
 
     @PostConstruct
     public void startInit(){
@@ -137,4 +145,49 @@ public class OauthController {
         }
     }
 
+
+    /**
+     * 微信公众号服务消息地址
+     * @param response
+     * @param request
+     * @param signature
+     * @param timestamp
+     * @param nonce
+     * @param echostr
+     * @return
+     * @throws IOException
+     */
+    @RequestMapping("/msg")
+    public String callBack(HttpServletResponse response, HttpServletRequest request, String signature, String timestamp, String nonce, String echostr) throws IOException {
+        try {
+            String[] arr = new String[]{TOKEN, timestamp, nonce};
+            Arrays.sort(arr);
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < arr.length; i++) {
+                sb.append(arr[i]);
+            }
+            MessageDigest messageDigest = MessageDigest.getInstance("SHA1");
+            messageDigest.update(sb.toString().getBytes());
+            String sign = getFormattedText(messageDigest.digest());
+            if (sign.equals(signature)) {
+                return echostr;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    private static String getFormattedText(byte[] bytes) {
+        int len = bytes.length;
+        StringBuilder buf = new StringBuilder(len * 2);
+        // 把密文转换成十六进制的字符串形式
+        for (int j = 0; j < len; j++) {
+            buf.append(HEX_DIGITS[(bytes[j] >> 4) & 0x0f]);
+            buf.append(HEX_DIGITS[bytes[j] & 0x0f]);
+        }
+
+        return buf.toString();
+
+    }
 }

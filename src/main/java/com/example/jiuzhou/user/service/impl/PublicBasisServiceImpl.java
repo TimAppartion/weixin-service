@@ -172,6 +172,7 @@ public class PublicBasisServiceImpl implements PublicBasisService {
         params.put("device_info",device_info);
         params.put("sign", PaymentKit.createSign(params,config.getPaternerKey()));
 
+        log.info("微信下单支付:{}",params);
         String xmlResult = PaymentApi.pushOrder(params);
         log.info("微信订单生成返回参数:{}",xmlResult);
 
@@ -201,6 +202,7 @@ public class PublicBasisServiceImpl implements PublicBasisService {
     @Transactional(rollbackFor = Exception.class)
     public Result<?> weiXinCallBack(Map<String, String> params) throws ParseException {
 
+        log.info("微信支付返回参数params：{}",params);
         //读取系统配置
         AbpWeixinConfig config= JSONObject.parseObject(redisTemplate.opsForValue().get("config").toString(),AbpWeixinConfig.class);
 
@@ -240,13 +242,18 @@ public class PublicBasisServiceImpl implements PublicBasisService {
         String err_code_des = params.get("err_code_des");
         Weixinorders weixinorders = weixinordersMapper.getByTransactionId(order.getTransaction_id());
         Boolean payKit=PaymentKit.verifyNotify(params, config.getPaternerKey());
-        log.info("order:{},payKit:{}",weixinorders,payKit);
+        log.info("微信回调返回参数:{},payKit:{}",weixinorders,payKit);
         // 注意重复通知的情况，同一订单号可能收到多次通知，请注意一定先判断订单状态
         if(weixinorders==null && payKit){
             if("SUCCESS".equals(order.getResult_code())){
                 log.info("更新订单信息:{}",payAttach);
                 int courseId = payAttach.getType();
-                weixinordersMapper.insert(order);
+                order.setCouresId(courseId);
+                order.setTenantId(TENANTID);
+                TUser tUser=tUserMapper.getByOpenId(order.getOpenId());
+                order.setUid(tUser.getUid());
+                log.info("新增订单参数:{}",order);
+                weixinordersMapper.insertOne(order);
 
                 String guid = payAttach.getGuid();
                 Integer couponId = payAttach.getCouponId();
@@ -282,10 +289,11 @@ public class PublicBasisServiceImpl implements PublicBasisService {
                     deductionRecords.setBeginMoney(account.getWallet());
                     deductionRecords.setEndMoney(fee);
                     deductionRecords.setPayFrom(1);
+                    deductionRecords.setInTime(new Date());
                     abpDeductionRecordsMapper.insetOne(deductionRecords);
                 }
                 if(courseId == 5){//账号充值
-                    log.info("自主结单，在线支付");
+                    log.info("账号充值");
                     this.saveRecharge(fee,order.getUid());
                 }
                 if(courseId == 3) {//自主结单
@@ -307,10 +315,12 @@ public class PublicBasisServiceImpl implements PublicBasisService {
                     deductionRecords.setBeginMoney(account.getWallet());
                     deductionRecords.setEndMoney(account.getWallet());
                     deductionRecords.setPayFrom(1);
+                    deductionRecords.setInTime(new Date());
                     abpDeductionRecordsMapper.insetOne(deductionRecords);
 
                 }
                 if(courseId == 2){
+                    log.info("包月缴费");
                     MonthRecord record = monthRecordMapper.getById(device_info);
                     if(record!=null){
                         monthlyCar(order.getUid(),record.getPlateNumber(),record.getMonthly_total_fee(),record.getParkId(),record.getMonth(),record.getMonthlyType());
@@ -332,6 +342,7 @@ public class PublicBasisServiceImpl implements PublicBasisService {
                     deductionRecords.setBeginMoney(account.getWallet());
                     deductionRecords.setEndMoney(new BigDecimal(tf));
                     deductionRecords.setPayFrom(1);
+                    deductionRecords.setInTime(new Date());
                     abpDeductionRecordsMapper.insetOne(deductionRecords);
                 }
             }
@@ -632,6 +643,8 @@ public class PublicBasisServiceImpl implements PublicBasisService {
         deductionRecords.setCardNo(account.getCardNo());
         deductionRecords.setBeginMoney(account.getWallet().subtract(money));
         deductionRecords.setEndMoney(account.getWallet());
+        deductionRecords.setInTime(new Date());
+        deductionRecords.setPayFrom(1);
         abpDeductionRecordsMapper.insetOne(deductionRecords);
     }
 

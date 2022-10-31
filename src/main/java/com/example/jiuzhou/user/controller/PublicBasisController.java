@@ -137,6 +137,11 @@ public class PublicBasisController {
         return publicBasisService.balancePay(query);
     }
 
+    /**
+     * 新增意见接口
+     * @param query
+     * @return
+     */
     @PostMapping("/insertOpinion")
     public Result<?> insertOpinion(@RequestBody OpinionQuery query){
         if(StringUtils.isEmpty(query.getUid()) || StringUtils.isEmpty(query.getContext()) || query.getType()==null){
@@ -156,6 +161,12 @@ public class PublicBasisController {
 //        return Result.success(jsonObject);
     }
 
+    /**
+     * 图片上传
+     * @param query
+     * @return
+     * @throws IOException
+     */
     @RequestMapping(value = "/image")
     public List<String> getImageById(@RequestBody ImageQuery query) throws IOException {
         String where = "D:";
