@@ -6,9 +6,9 @@
 <mapper namespace="com.example.jiuzhou.user.mapper.MonthRecordMapper">
     <insert id="insertOne">
         INSERT INTO MonthRecord
-        ( openId,plateNumber,monthly_total_fee,parkId,month,monthlyType,uid )
+        ( Id,openId,plateNumber,monthly_total_fee,parkId,month,monthlyType,uid )
         VALUES
-        ( #{query.openId},#{query.plateNumber},#{query.monthly_total_fee},#{query.parkId},#{query.month},#{query.monthlyType},#{query.uid} )
+        ( #{query.Id},#{query.openId},#{query.plateNumber},#{query.monthly_total_fee},#{query.parkId},#{query.month},#{query.monthlyType},#{query.uid} )
     </insert>
     <select id="getById" resultType="com.example.jiuzhou.user.model.MonthRecord">
         select * from MonthRecord where id = #{id}

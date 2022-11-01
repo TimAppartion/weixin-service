@@ -108,7 +108,7 @@ public class WeiXinOauthServiceImpl implements WeiXinOauthService {
         Example example = new Example(TUser.class);
         Example.Criteria criteria = example.createCriteria();
         criteria.andEqualTo("tel", query.getMobile());
-
+        criteria.andNotEqualTo("uid", query.getUid());
         List<TUser> tUsersByCar = tUserMapper.selectByExample(example);
         if(tUsersByCar.size()>0){
             return Result.error(ResultEnum.ERROR,"用户手机号已经被绑定");

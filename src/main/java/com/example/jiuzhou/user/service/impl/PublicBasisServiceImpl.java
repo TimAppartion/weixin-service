@@ -123,6 +123,9 @@ public class PublicBasisServiceImpl implements PublicBasisService {
             monthRecordMapper.insertOne(monthRecord);
         }
 
+        WeiXinPayAttach weiXinPayAttach=new WeiXinPayAttach();
+        //存储优惠前的金额
+        weiXinPayAttach.setFee(query.getFee());
         //计算优惠券金额
         if(query.getCouponId()!=null){
             CouponsView couponsView = couponsDetailsMapper.getDetails(query.getCouponId());
@@ -151,14 +154,14 @@ public class PublicBasisServiceImpl implements PublicBasisService {
 
 
         String payAttachId=UUID.randomUUID().toString().replace("-","");
-        WeiXinPayAttach weiXinPayAttach=new WeiXinPayAttach();
+
         weiXinPayAttach.setId(payAttachId);
         weiXinPayAttach.setOrderId(out_trade_no);
         weiXinPayAttach.setType(query.getType());
         weiXinPayAttach.setCount(3);
         weiXinPayAttach.setGuid(query.getGuid());
         weiXinPayAttach.setCouponId(query.getCouponId()!=null?query.getCouponId():null);
-        weiXinPayAttach.setFee(query.getFee());
+
         weiXinPayAttachMapper.insert(weiXinPayAttach);
 //        new PayAttach(out_trade_no,query.getType(),3, query.getGuid(),query.getCouponId()!=null?query.getCouponId().toString():"",query.getFee().toString()))+"|"+query.getType()
 
@@ -270,7 +273,7 @@ public class PublicBasisServiceImpl implements PublicBasisService {
 
                     String[] guids=guid.split(",");
                     for(int i=0;i<guids.length;i++){
-                        updateOrder(guids[i],fee );
+                        updateOrder(guids[i],new BigDecimal(order.getTotal_fee() ));
                     }
 
                     ExtOtherAccount account = extOtherAccountMapper.getByUid(order.getUid());
@@ -465,8 +468,6 @@ public class PublicBasisServiceImpl implements PublicBasisService {
     public Result<?> balancePay(BalancePayQuery query) throws ParseException {
         //取系统配置信息
         AbpWeixinConfig config=JSONObject.parseObject(redisTemplate.opsForValue().get("config").toString(),AbpWeixinConfig.class);
-
-
         if(query.getCouponId()!=null){
             Result result=couponsService.canUseCoupon(query.getFee(),query.getUid(),query.getCouponId());
             if(result.getCode()!=200){
@@ -591,6 +592,7 @@ public class PublicBasisServiceImpl implements PublicBasisService {
         businessDetail.setEscapeDeviceCode("weixinclient");
         businessDetail.setPaymentType(3);
         businessDetail.setEscapeOperaId(config.getRecoverMoneny());
+        businessDetail.setCarPayTime(new Date());
         abpBusinessDetailMapper.updateByPrimaryKey(businessDetail);
     }
     /**

@@ -27,32 +27,34 @@ public class CouponsServiceImpl implements CouponsService {
     @Override
     public Result<?> canUseCoupon(BigDecimal fee, String uid, Integer couponId) {
         CouponsView details= couponsDetailsMapper.getDetails(couponId);
-        if(!details.getUid().equals(uid)){
-            return Result.error("用户关联和使用优惠券不匹配");
-        }
-        if(details.getType()==1){
-            //固定减免
-            if(details.getCouponsMoney().compareTo(fee)<0){
-                fee=fee.subtract(details.getCouponsMoney());
-            }else{
-                return Result.error("优惠券优惠金额大于支付金额");
+        if(details!=null) {
+            if (!uid.equals(details.getUid())) {
+                return Result.error("用户关联和使用优惠券不匹配");
             }
-        }else if(details.getType()==2){
-            //固定打折
-            fee=fee.multiply(details.getCouponsMoney());
-        }else if(details.getType()==3){
-            //条件减免
-            if(fee.compareTo(details.getTermMoney())>0&&fee.compareTo(details.getCouponsMoney())>=0){
-                fee=fee.subtract(details.getCouponsMoney());
-            }else{
-                return Result.error("未达到优惠券使用金额");
-            }
-        }else if(details.getType()==4){
-            //条件打折
-            if(fee.compareTo(details.getTermMoney())>0){
-                fee=fee.multiply(details.getCouponsMoney());
-            }else{
-                return Result.error("未达到优惠券使用金额");
+            if (details.getType() == 1) {
+                //固定减免
+                if (details.getCouponsMoney().compareTo(fee) < 0) {
+                    fee = fee.subtract(details.getCouponsMoney());
+                } else {
+                    return Result.error("优惠券优惠金额大于支付金额");
+                }
+            } else if (details.getType() == 2) {
+                //固定打折
+                fee = fee.multiply(details.getCouponsMoney());
+            } else if (details.getType() == 3) {
+                //条件减免
+                if (fee.compareTo(details.getTermMoney()) > 0 && fee.compareTo(details.getCouponsMoney()) >= 0) {
+                    fee = fee.subtract(details.getCouponsMoney());
+                } else {
+                    return Result.error("未达到优惠券使用金额");
+                }
+            } else if (details.getType() == 4) {
+                //条件打折
+                if (fee.compareTo(details.getTermMoney()) > 0) {
+                    fee = fee.multiply(details.getCouponsMoney());
+                } else {
+                    return Result.error("未达到优惠券使用金额");
+                }
             }
         }
         //返回分单位的金额
