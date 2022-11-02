@@ -5,6 +5,7 @@ import com.example.jiuzhou.common.utils.Result;
 import com.example.jiuzhou.user.mapper.ExtOtherPlateNumberMapper;
 import com.example.jiuzhou.user.query.BindCarQuery;
 import com.example.jiuzhou.user.query.OrderQuery;
+import com.example.jiuzhou.user.query.RealNameQuery;
 import com.example.jiuzhou.user.query.UpdateUserQuery;
 import com.example.jiuzhou.user.service.MineService;
 import lombok.extern.slf4j.Slf4j;
@@ -136,6 +137,14 @@ public class MineController {
             return Result.error(ResultEnum.MISS_DATA);
         }
         return mineService.updateUser(query);
+    }
+
+    @PostMapping("/realName")
+    public Result<?> realName(@RequestBody RealNameQuery query){
+        if(StringUtils.isEmpty(query.getUid())){
+            return Result.error(ResultEnum.MISS_DATA);
+        }
+        return mineService.realName(query);
     }
 
 }

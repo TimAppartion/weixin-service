@@ -2,6 +2,7 @@ package com.example.jiuzhou.user.controller;
 
 import com.alibaba.fastjson.JSONObject;
 import com.example.jiuzhou.common.Enum.ResultEnum;
+import com.example.jiuzhou.common.utils.HmacSHA1Utils;
 import com.example.jiuzhou.common.utils.ImageUtils;
 import com.example.jiuzhou.common.utils.Result;
 import com.example.jiuzhou.user.mapper.AbpOrderEvaluateMapper;
@@ -26,8 +27,11 @@ import javax.annotation.Resource;
 import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.ParseException;
@@ -151,14 +155,27 @@ public class PublicBasisController {
     }
 
 
-    @RequestMapping("/test")
-    public Result<?> test() throws NoSuchAlgorithmException {
+    /**
+     * md5转码
+     * @return
+     * @throws NoSuchAlgorithmException
+     */
+    @RequestMapping("/md5")
+    public Result<?> md5() throws NoSuchAlgorithmException {
 //        log.info("data:{}",data);
         String data="blog";
         MessageDigest md5Utils = MessageDigest.getInstance("MD5");
         byte[] var=data.getBytes(StandardCharsets.UTF_8);
         return Result.success(md5Utils.digest(var));
 //        return Result.success(jsonObject);
+    }
+    @RequestMapping("/test")
+    public Result<?> test() throws NoSuchAlgorithmException, InvalidKeyException, UnsupportedEncodingException {
+        String data = "POST\nzH366v2kgkEK1zlYIWfBiQ==\napplication/json\n1667210400\n/v2/server_api/user/parking";
+        String hmac=HmacSHA1Utils.genHMAC(data,"32cC54TEmgpvvSbywf8GO02IhqNg6uFB");
+//        String base64=Base64.getEncoder().encodeToString(hmac.getBytes("utf-8"));
+        String url= URLEncoder.encode(hmac, "GBK");
+        return Result.success(url);
     }
 
     /**

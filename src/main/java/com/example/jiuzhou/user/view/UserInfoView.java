@@ -24,4 +24,9 @@ public class UserInfoView {
     private String openId;
     private String userId;
     private String uid;
+
+    private String certificateImg;
+    private String certificateReversesImg;
+    private String card;
+    private String certificateType;
 }

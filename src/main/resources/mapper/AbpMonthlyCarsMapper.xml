@@ -13,7 +13,7 @@
     <select id="monthCad" resultType="com.example.jiuzhou.user.view.MonthCarsView">
         SELECT
         b.*,
-        c.ParkType,
+        ISNULL(c.ParkType, 2) as ParkType,
         ISNULL(c.ParkName, '不限路段') as ParkName
         from AbpMonthlyCars b
         left join  TUser a on (a.CarNumber1 = b.PlateNumber or a.CarNumber2 = b.PlateNumber or a.CarNumber3 = b.PlateNumber)

@@ -35,6 +35,10 @@
             a.tel,
             a.sex,
             a.birthday,
+            a.CertificateImg,
+            a.CertificateReversesImg,
+            a.Card,
+            a.CertificateType,
             b.Wallet,
             c.Coupon
         from TUser a

@@ -6,6 +6,7 @@ import com.example.jiuzhou.user.mapper.*;
 import com.example.jiuzhou.user.model.*;
 import com.example.jiuzhou.user.query.BindCarQuery;
 import com.example.jiuzhou.user.query.OrderQuery;
+import com.example.jiuzhou.user.query.RealNameQuery;
 import com.example.jiuzhou.user.query.UpdateUserQuery;
 import com.example.jiuzhou.user.service.MineService;
 import com.example.jiuzhou.user.view.MonthCarsView;
@@ -174,6 +175,20 @@ public class MineServiceImpl implements MineService {
         }
         tUserMapper.updateByPrimaryKey(tUser);
         return Result.success("用户信息修改完成");
+    }
+
+    @Override
+    public Result<?> realName(RealNameQuery query) {
+        TUser tUser = tUserMapper.getByUid(query.getUid());
+        if(tUser==null){
+            return Result.error(ResultEnum.MISS_DATA,"未查询到用户信息");
+        }
+        tUser.setCertificateType(query.getCertificateType());
+        tUser.setCertificateImg(query.getCertificateImg());
+        tUser.setCertificateReversesImg(query.getCertificateReversesImg());
+        tUser.setCard(query.getCard());
+        tUserMapper.updateByPrimaryKey(tUser);
+        return Result.success("实名验证信息登记完成");
     }
 
     public boolean updateCarNumber(String plateNumber,String uid){
