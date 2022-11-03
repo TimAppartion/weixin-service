@@ -3,6 +3,7 @@ package com.example.jiuzhou.common.config;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -46,11 +47,10 @@ public class JacksonConfig {
         // 允许出现单引号
         objectMapper.configure(JsonParser.Feature.ALLOW_SINGLE_QUOTES, true);
         // 字段保留，将null值转为""
-        objectMapper.getSerializerProvider().setNullValueSerializer(new JsonSerializer<Object>() {
+        SerializerProvider serializerProvider = objectMapper.getSerializerProvider();
+        serializerProvider.setNullValueSerializer(new JsonSerializer<Object>() {
             @Override
-            public void serialize(Object o, JsonGenerator jsonGenerator,
-                                  SerializerProvider serializerProvider)
-                    throws IOException {
+            public void serialize(Object o, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException, JsonProcessingException {
                 jsonGenerator.writeString("");
             }
         });

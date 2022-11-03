@@ -16,6 +16,7 @@ import com.jfinal.kit.Prop;
 import com.jfinal.kit.PropKit;
 import com.jfinal.weixin.sdk.api.*;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -26,9 +27,7 @@ import javax.annotation.Resource;
 
 import java.math.BigDecimal;
 
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @Slf4j
@@ -74,53 +73,76 @@ public class WeiXinOauthServiceImpl implements WeiXinOauthService {
         String openId = snsAccessToken.getOpenid();
 
         log.info("snsAccessToken:{},token:{},openId:{}",snsAccessToken,token,openId);
-        TUser tUser=tUserMapper.getByOpenId(openId);
-
-        if(tUser!=null){
-            return Result.success(tUser);
-        }
+//        TUser tUser=tUserMapper.getByOpenId(openId);
+//
+//        if(tUser!=null){
+//            return Result.success(tUser);
+//        }
         // 拉取用户信息(需scope为 snsapi_userinfo)
         ApiResult apiResult = SnsApi.getUserInfo(token, openId);
-        log.warn("getUserInfo:" + apiResult.getJson());
+        log.warn("微信授权获取微信用户信息:" + apiResult.getJson());
         if (apiResult.isSucceed()) {
-            TUser newUser=new TUser();
+            Map<String ,Object> responseMap=new HashMap<>();
             JSONObject jsonObject = JSON.parseObject(apiResult.getJson());
-            newUser.setOpenId(jsonObject.getString("openid"));
-            newUser.setNickName(jsonObject.getString("nickname"));
-            // 用户的性别，值为0时是男性，值为1时是女性
-            newUser.setSex(jsonObject.getIntValue("sex"));
-            newUser.setHeadImgUrl(jsonObject.getString("headimgurl"));
-            newUser.setTenantId(TENANTID);
-            newUser.setUid(UUID.randomUUID().toString().replace("-",""));
-            newUser.setRegisterDate(new Date());
-            newUser.setLevels(1);
-            newUser.setSendWeixinNumber(0);
-            tUserMapper.insetOne(newUser);
-            return Result.success(newUser);
+            responseMap.put("openId",jsonObject.getString("openid"));
+            responseMap.put("nick_name",jsonObject.getString("nickname"));
+            responseMap.put("sex",jsonObject.getString("sex"));
+            responseMap.put("headimgurl",jsonObject.getString("headimgurl"));
+            return Result.success(responseMap);
         }
         return Result.error(ResultEnum.ERROR,"没有用户信息");
 
     }
 
+    /**
+     * 绑定手机号的时候生成用户信息进TUser表
+     * 如果微信或者支付宝中有一个有了昵称头像性别就不更新
+     * @param query
+     * @return
+     */
     @Override
     public Result<?> bindPhone(OauthQuery query) {
-        TUser tUser=tUserMapper.getByUid(query.getUid());
         Example example = new Example(TUser.class);
         Example.Criteria criteria = example.createCriteria();
         criteria.andEqualTo("tel", query.getMobile());
-        criteria.andNotEqualTo("uid", query.getUid());
-        List<TUser> tUsersByCar = tUserMapper.selectByExample(example);
-        if(tUsersByCar.size()>0){
-            return Result.error(ResultEnum.ERROR,"用户手机号已经被绑定");
-        }
-        if(null!=tUser){
-            tUser.setTel(query.getMobile());
-            tUserMapper.updateByPrimaryKey(tUser);
-            createAccount(query.getMobile());
-            return Result.success(tUser);
-        }
+        List<TUser> tUsersByTel = tUserMapper.selectByExample(example);
+        TUser newUser=new TUser();
+        if(tUsersByTel.size()==0){
+            //头一次注册直接生成用户信息
+            newUser.setNickName(query.getNickName());
+            // 用户的性别，值为0时是男性，值为1时是女性
+            newUser.setSex(query.getSex());
+            newUser.setTel(query.getMobile());
+            newUser.setOpenId(query.getOpenId());
+            newUser.setUserId(query.getUserId());
+            newUser.setHeadImgUrl(query.getHeadImgUrl());
+            newUser.setTenantId(TENANTID);
+            newUser.setUid(UUID.randomUUID().toString().replace("-",""));
+            newUser.setRegisterDate(new Date());
+            newUser.setLevels(1);
+            newUser.setSendWeixinNumber(0);
 
-        return Result.error(ResultEnum.ERROR,"绑定失败");
+            tUserMapper.insetOne(newUser);
+            createAccount(query.getMobile());
+            return Result.success(newUser);
+        }
+        if(tUsersByTel.size()>=2){
+            return Result.error(ResultEnum.ERROR);
+        }
+        newUser=tUsersByTel.get(0);
+        if(StringUtils.isEmpty(newUser.getNickName()) && StringUtils.isNotEmpty(query.getNickName())){
+            newUser.setNickName(query.getNickName());
+        }
+        if(StringUtils.isEmpty(newUser.getHeadImgUrl()) && StringUtils.isNotEmpty(query.getHeadImgUrl())){
+            newUser.setHeadImgUrl(query.getHeadImgUrl());
+        }
+        if(newUser.getSex()==null && newUser.getSex()!=null){
+            newUser.setSex(query.getSex());
+        }
+        tUserMapper.updateByPrimaryKey(newUser);
+
+
+        return Result.success(newUser);
     }
 
     /**

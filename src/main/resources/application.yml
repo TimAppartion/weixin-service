@@ -19,6 +19,10 @@ mybatis:
   config-location: classpath:/mybatis/mybatis-config.xml #mybatis配置文件路径
   type-aliases-package: com.example.jiuzhou.user.model
 spring:
+  jackson:
+    default-property-inclusion: always
+    date-format: "yyyy-MM-dd HH:mm:ss"
+    time-zone: "GMT+8"
   application:
     name: jiuzhou-service #项目名
   profiles:

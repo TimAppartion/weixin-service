@@ -89,12 +89,10 @@ public class OauthController {
     public Result<?> sendRegSMS(@Validated @ModelAttribute OauthQuery query){
         log.info("短信发送：{}",query);
         String code = SubMailUtils.random(6, SubMailUtils.RandomType.INT);
-        // String code = "123456";
         int res_code = -9;
         if (query.getSmsType()== 0) {
             // 注册
             res_code = SubMailUtils.sendMsg(1,query.getMobile(),code,null,null);
-            // res_code = 0;
         } else if (query.getSmsType() == 1) {
             // 找回密码
             res_code = SubMailUtils.sendMsg(2,query.getMobile(),code,null,null);
@@ -112,15 +110,12 @@ public class OauthController {
         if(StringUtils.isEmpty(query.getMobile())){
             return Result.error(ResultEnum.MISS_DATA);
         }
-        if(StringUtils.isEmpty(query.getUid())){
-            return Result.error(ResultEnum.MISS_DATA);
-        }
         if(StringUtils.isEmpty(query.getCode())){
             return Result.error(ResultEnum.ERROR,"验证码错误");
         }
-        if(!mobileCodeEquals(query.getMobile(),query.getCode())){
-            return Result.error(ResultEnum.ERROR,"验证码输入错误,请重新输入！");
-        }
+//        if(!mobileCodeEquals(query.getMobile(),query.getCode())){
+//            return Result.error(ResultEnum.ERROR,"验证码输入错误,请重新输入！");
+//        }
         return weiXinOauthService.bindPhone(query);
     }
     /**

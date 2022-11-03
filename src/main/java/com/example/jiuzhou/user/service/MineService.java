@@ -5,7 +5,7 @@ import com.example.jiuzhou.user.query.BindCarQuery;
 import com.example.jiuzhou.user.query.OrderQuery;
 import com.example.jiuzhou.user.query.RealNameQuery;
 import com.example.jiuzhou.user.query.UpdateUserQuery;
-import tk.mybatis.mapper.annotation.Order;
+
 
 /**
  * @author Appartion

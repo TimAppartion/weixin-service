@@ -1,5 +1,6 @@
 package com.example.jiuzhou.user.view;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -10,6 +11,7 @@ import java.math.BigDecimal;
  * 一入代码深似海，从此生活是路人
  */
 @Data
+@JsonInclude(JsonInclude.Include.ALWAYS)
 public class UserInfoView {
     private String birthday;
     private Integer Coupon;
