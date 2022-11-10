@@ -3,6 +3,8 @@ package com.example.jiuzhou.common.utils;
 import com.example.jiuzhou.common.Enum.ResultEnum;
 import org.apache.commons.lang.StringUtils;
 
+import javax.xml.crypto.Data;
+
 public class Result<T> {
     private Integer code;
     private String msg;
@@ -64,6 +66,13 @@ public class Result<T> {
         Result result = new Result();
         result.setCode(resultEnum.getCode());
         result.setMsg(StringUtils.isEmpty(msg)? resultEnum.getMsg():msg);
+        return result;
+    }
+
+    public static <T> Result<T> error(ResultEnum resultEnum, T data) {
+        Result result = new Result();
+        result.setCode(resultEnum.getCode());
+        result.setData(data);
         return result;
     }
     public static Result error(ResultEnum resultEnum) {
