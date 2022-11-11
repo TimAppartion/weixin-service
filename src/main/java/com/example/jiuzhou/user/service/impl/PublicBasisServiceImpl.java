@@ -270,30 +270,7 @@ public class PublicBasisServiceImpl implements PublicBasisService {
 
 
                 if(courseId == 4 && StringUtils.isNotEmpty(guid)){//处理在线补缴
-
-                    String[] guids=guid.split(",");
-                    for(int i=0;i<guids.length;i++){
-                        updateOrder(guids[i],new BigDecimal(order.getTotal_fee() ));
-                    }
-
-                    ExtOtherAccount account = extOtherAccountMapper.getByUid(order.getUid());
-                    String tf = String.valueOf(Double.valueOf(order.getTotal_fee())*0.01);
-                    AbpDeductionRecords deductionRecords=new AbpDeductionRecords();
-                    deductionRecords.setOtherAccountId(account.getId());
-                    deductionRecords.setOperType(1);
-                    deductionRecords.setMoney(new BigDecimal(tf));
-                    deductionRecords.setPayStatus(1);
-                    deductionRecords.setRemark("欠费补缴");
-                    deductionRecords.setEmployeeId(config.getDepositCard());
-                    deductionRecords.setTenantId(TENANTID);
-                    deductionRecords.setCompanyId(MONECOMPANYID);
-                    deductionRecords.setUserId(MONEUSERID);
-                    deductionRecords.setCardNo(account.getCardNo());
-                    deductionRecords.setBeginMoney(account.getWallet());
-                    deductionRecords.setEndMoney(fee);
-                    deductionRecords.setPayFrom(1);
-                    deductionRecords.setInTime(new Date());
-                    abpDeductionRecordsMapper.insetOne(deductionRecords);
+                    this.payment(order.getTotal_fee(),guid,config.getDepositCard(),order.getUid(),fee);
                 }
                 if(courseId == 5){//账号充值
                     log.info("账号充值");
@@ -301,56 +278,93 @@ public class PublicBasisServiceImpl implements PublicBasisService {
                 }
                 if(courseId == 3) {//自主结单
                     log.info("自主结单");
-                    this.carOut(guid,fee);
-                    ExtOtherAccount account = extOtherAccountMapper.getByUid(order.getUid());
-                    String tf = String.valueOf(Double.valueOf(order.getTotal_fee())*0.01);
-                    AbpDeductionRecords deductionRecords=new AbpDeductionRecords();
-                    deductionRecords.setOtherAccountId(account.getId());
-                    deductionRecords.setOperType(1);
-                    deductionRecords.setMoney(new BigDecimal(tf));
-                    deductionRecords.setPayStatus(1);
-                    deductionRecords.setRemark("停车缴费");
-                    deductionRecords.setEmployeeId(config.getDepositCard());
-                    deductionRecords.setTenantId(TENANTID);
-                    deductionRecords.setCompanyId(MONECOMPANYID);
-                    deductionRecords.setUserId(MONEUSERID);
-                    deductionRecords.setCardNo(account.getCardNo());
-                    deductionRecords.setBeginMoney(account.getWallet());
-                    deductionRecords.setEndMoney(account.getWallet());
-                    deductionRecords.setPayFrom(1);
-                    deductionRecords.setInTime(new Date());
-                    abpDeductionRecordsMapper.insetOne(deductionRecords);
-
+                    this.statement(guid,fee,order.getUid(),order.getTotal_fee(),config.getDepositCard());
                 }
                 if(courseId == 2){
                     log.info("包月缴费");
-                    MonthRecord record = monthRecordMapper.getById(device_info);
-                    if(record!=null){
-                        monthlyCar(order.getUid(),record.getPlateNumber(),record.getMonthly_total_fee(),record.getParkId(),record.getMonth(),record.getMonthlyType());
-                    }
-
-                    ExtOtherAccount account = extOtherAccountMapper.getByUid(order.getUid());
-                    String tf = String.valueOf(Double.valueOf(order.getTotal_fee())*0.01);
-                    AbpDeductionRecords deductionRecords=new AbpDeductionRecords();
-                    deductionRecords.setOtherAccountId(account.getId());
-                    deductionRecords.setOperType(1);
-                    deductionRecords.setMoney(new BigDecimal(tf));
-                    deductionRecords.setPayStatus(1);
-                    deductionRecords.setRemark("包月缴费");
-                    deductionRecords.setEmployeeId(config.getDepositCard());
-                    deductionRecords.setTenantId(TENANTID);
-                    deductionRecords.setCompanyId(MONECOMPANYID);
-                    deductionRecords.setUserId(MONEUSERID);
-                    deductionRecords.setCardNo(account.getCardNo());
-                    deductionRecords.setBeginMoney(account.getWallet());
-                    deductionRecords.setEndMoney(new BigDecimal(tf));
-                    deductionRecords.setPayFrom(1);
-                    deductionRecords.setInTime(new Date());
-                    abpDeductionRecordsMapper.insetOne(deductionRecords);
+                    monthPay(device_info, order.getUid(), order.getTotal_fee(),config.getDepositCard());
                 }
             }
         }
         return Result.success();
+    }
+
+    @Override
+    public void monthPay(String device_info,String uid,Integer total_fee,Integer depositCard) throws ParseException {
+        MonthRecord record = monthRecordMapper.getById(device_info);
+        if(record!=null){
+            monthlyCar(uid,record.getPlateNumber(),record.getMonthly_total_fee(),record.getParkId(),record.getMonth(),record.getMonthlyType());
+        }
+
+        ExtOtherAccount account = extOtherAccountMapper.getByUid(uid);
+        String tf = String.valueOf(Double.valueOf(total_fee)*0.01);
+        AbpDeductionRecords deductionRecords=new AbpDeductionRecords();
+        deductionRecords.setOtherAccountId(account.getId());
+        deductionRecords.setOperType(1);
+        deductionRecords.setMoney(new BigDecimal(tf));
+        deductionRecords.setPayStatus(1);
+        deductionRecords.setRemark("包月缴费");
+        deductionRecords.setEmployeeId(depositCard);
+        deductionRecords.setTenantId(TENANTID);
+        deductionRecords.setCompanyId(MONECOMPANYID);
+        deductionRecords.setUserId(MONEUSERID);
+        deductionRecords.setCardNo(account.getCardNo());
+        deductionRecords.setBeginMoney(account.getWallet());
+        deductionRecords.setEndMoney(new BigDecimal(tf));
+        deductionRecords.setPayFrom(1);
+        deductionRecords.setInTime(new Date());
+        abpDeductionRecordsMapper.insetOne(deductionRecords);
+    }
+
+    @Override
+    public void statement(String guid,BigDecimal fee,String uid,Integer total_fee,Integer depositCard){
+        this.carOut(guid,fee);
+        ExtOtherAccount account = extOtherAccountMapper.getByUid(uid);
+        String tf = String.valueOf(Double.valueOf(total_fee)*0.01);
+        AbpDeductionRecords deductionRecords=new AbpDeductionRecords();
+        deductionRecords.setOtherAccountId(account.getId());
+        deductionRecords.setOperType(1);
+        deductionRecords.setMoney(new BigDecimal(tf));
+        deductionRecords.setPayStatus(1);
+        deductionRecords.setRemark("停车缴费");
+        deductionRecords.setEmployeeId(depositCard);
+        deductionRecords.setTenantId(TENANTID);
+        deductionRecords.setCompanyId(MONECOMPANYID);
+        deductionRecords.setUserId(MONEUSERID);
+        deductionRecords.setCardNo(account.getCardNo());
+        deductionRecords.setBeginMoney(account.getWallet());
+        deductionRecords.setEndMoney(account.getWallet());
+        deductionRecords.setPayFrom(1);
+        deductionRecords.setInTime(new Date());
+        abpDeductionRecordsMapper.insetOne(deductionRecords);
+
+    }
+
+    @Override
+    public void payment(Integer totalFee,String guid,Integer depositCard,String uid,BigDecimal fee){
+        String[] guids=guid.split(",");
+        for(int i=0;i<guids.length;i++){
+            updateOrder(guids[i],new BigDecimal(totalFee));
+        }
+
+        ExtOtherAccount account = extOtherAccountMapper.getByUid(uid);
+        String tf = String.valueOf(Double.valueOf(totalFee)*0.01);
+        AbpDeductionRecords deductionRecords=new AbpDeductionRecords();
+        deductionRecords.setOtherAccountId(account.getId());
+        deductionRecords.setOperType(1);
+        deductionRecords.setMoney(new BigDecimal(tf));
+        deductionRecords.setPayStatus(1);
+        deductionRecords.setRemark("欠费补缴");
+        deductionRecords.setEmployeeId(depositCard);
+        deductionRecords.setTenantId(TENANTID);
+        deductionRecords.setCompanyId(MONECOMPANYID);
+        deductionRecords.setUserId(MONEUSERID);
+        deductionRecords.setCardNo(account.getCardNo());
+        deductionRecords.setBeginMoney(account.getWallet());
+        deductionRecords.setEndMoney(fee);
+        deductionRecords.setPayFrom(1);
+        deductionRecords.setInTime(new Date());
+        abpDeductionRecordsMapper.insetOne(deductionRecords);
     }
 
     @Override
@@ -625,7 +639,8 @@ public class PublicBasisServiceImpl implements PublicBasisService {
     }
 
 
-    private void saveRecharge(BigDecimal money , String uid){
+    @Override
+    public void saveRecharge(BigDecimal money , String uid){
         AbpWeixinConfig config=JSONObject.parseObject(redisTemplate.opsForValue().get("config").toString(),AbpWeixinConfig.class);
 
         ExtOtherAccount account = extOtherAccountMapper.getByUid(uid);

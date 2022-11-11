@@ -72,4 +72,41 @@ public interface PublicBasisService {
      * @return
      */
     Result<?> onlineCarSendMsg(OnlineCarSendMsgQuery query);
+
+    /**
+     * 处理在线补缴
+     * @param totalFee
+     * @param guid
+     * @param depositCard
+     * @param uid
+     * @param fee
+     */
+    void payment(Integer totalFee,String guid,Integer depositCard,String uid,BigDecimal fee);
+
+    /**
+     * 自主结单
+     * @param guid
+     * @param fee
+     * @param uid
+     * @param total_fee
+     * @param depositCard
+     */
+    void statement(String guid,BigDecimal fee,String uid,Integer total_fee,Integer depositCard);
+
+    /**
+     * 包月缴费
+     * @param device_info
+     * @param uid
+     * @param total_fee
+     * @param depositCard
+     * @throws ParseException
+     */
+    void monthPay(String device_info,String uid,Integer total_fee,Integer depositCard) throws ParseException;
+
+    /**
+     * 账号充值
+     * @param money
+     * @param uid
+     */
+    void saveRecharge(BigDecimal money , String uid);
 }
