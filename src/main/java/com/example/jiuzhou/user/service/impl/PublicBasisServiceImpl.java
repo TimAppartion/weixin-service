@@ -274,15 +274,15 @@ public class PublicBasisServiceImpl implements PublicBasisService {
                 }
                 if(courseId == 5){//账号充值
                     log.info("账号充值");
-                    this.saveRecharge(fee,order.getUid());
+                    this.saveRecharge(fee,order.getUid(),1);
                 }
                 if(courseId == 3) {//自主结单
                     log.info("自主结单");
-                    this.statement(guid,fee,order.getUid(),order.getTotal_fee(),config.getDepositCard());
+                    this.statement(guid,fee,order.getUid(),order.getTotal_fee(),config.getDepositCard(),1);
                 }
                 if(courseId == 2){
                     log.info("包月缴费");
-                    monthPay(device_info, order.getUid(), order.getTotal_fee(),config.getDepositCard());
+                    this.monthPay(device_info, order.getUid(), order.getTotal_fee(),config.getDepositCard(),1);
                 }
             }
         }
@@ -290,7 +290,7 @@ public class PublicBasisServiceImpl implements PublicBasisService {
     }
 
     @Override
-    public void monthPay(String device_info,String uid,Integer total_fee,Integer depositCard) throws ParseException {
+    public void monthPay(String device_info,String uid,Integer total_fee,Integer depositCard,Integer payFrom) throws ParseException {
         MonthRecord record = monthRecordMapper.getById(device_info);
         if(record!=null){
             monthlyCar(uid,record.getPlateNumber(),record.getMonthly_total_fee(),record.getParkId(),record.getMonth(),record.getMonthlyType());
@@ -311,13 +311,13 @@ public class PublicBasisServiceImpl implements PublicBasisService {
         deductionRecords.setCardNo(account.getCardNo());
         deductionRecords.setBeginMoney(account.getWallet());
         deductionRecords.setEndMoney(new BigDecimal(tf));
-        deductionRecords.setPayFrom(1);
+        deductionRecords.setPayFrom(payFrom);
         deductionRecords.setInTime(new Date());
         abpDeductionRecordsMapper.insetOne(deductionRecords);
     }
 
     @Override
-    public void statement(String guid,BigDecimal fee,String uid,Integer total_fee,Integer depositCard){
+    public void statement(String guid,BigDecimal fee,String uid,Integer total_fee,Integer depositCard,Integer payFrom){
         this.carOut(guid,fee);
         ExtOtherAccount account = extOtherAccountMapper.getByUid(uid);
         String tf = String.valueOf(Double.valueOf(total_fee)*0.01);
@@ -334,7 +334,7 @@ public class PublicBasisServiceImpl implements PublicBasisService {
         deductionRecords.setCardNo(account.getCardNo());
         deductionRecords.setBeginMoney(account.getWallet());
         deductionRecords.setEndMoney(account.getWallet());
-        deductionRecords.setPayFrom(1);
+        deductionRecords.setPayFrom(payFrom);
         deductionRecords.setInTime(new Date());
         abpDeductionRecordsMapper.insetOne(deductionRecords);
 
@@ -552,7 +552,7 @@ public class PublicBasisServiceImpl implements PublicBasisService {
         if(query.getType()==5){
             deductionRecords.setOperType(1);
             deductionRecords.setRemark("账号充值");
-            saveRecharge(query.getFee(),query.getUid());
+            this.saveRecharge(query.getFee(),query.getUid(),3);
         }
         abpDeductionRecordsMapper.insetOne(deductionRecords);
         extOtherAccountMapper.updateByPrimaryKey(account);
@@ -640,7 +640,7 @@ public class PublicBasisServiceImpl implements PublicBasisService {
 
 
     @Override
-    public void saveRecharge(BigDecimal money , String uid){
+    public void saveRecharge(BigDecimal money , String uid,Integer payFrom){
         AbpWeixinConfig config=JSONObject.parseObject(redisTemplate.opsForValue().get("config").toString(),AbpWeixinConfig.class);
 
         ExtOtherAccount account = extOtherAccountMapper.getByUid(uid);
@@ -652,7 +652,7 @@ public class PublicBasisServiceImpl implements PublicBasisService {
         deductionRecords.setOperType(1);
         deductionRecords.setMoney(money);
         deductionRecords.setPayStatus(1);
-        deductionRecords.setRemark("微信充值");
+        deductionRecords.setRemark(payFrom==1?"微信充值":"支付宝充值");
         deductionRecords.setEmployeeId(config.getDepositCard());
         deductionRecords.setTenantId(TENANTID);
         deductionRecords.setCompanyId(MONECOMPANYID);
@@ -661,12 +661,13 @@ public class PublicBasisServiceImpl implements PublicBasisService {
         deductionRecords.setBeginMoney(account.getWallet().subtract(money));
         deductionRecords.setEndMoney(account.getWallet());
         deductionRecords.setInTime(new Date());
-        deductionRecords.setPayFrom(1);
+        deductionRecords.setPayFrom(payFrom);
         abpDeductionRecordsMapper.insetOne(deductionRecords);
     }
 
 
-    private Result<?> checkMonthlyCar(boolean isMonthlyRenewal,String plateNumber,Integer parkId){
+    @Override
+    public Result<?> checkMonthlyCar(boolean isMonthlyRenewal,String plateNumber,Integer parkId){
         AbpMonthlyCars abpMonthlyCars= abpMonthlyCarsMapper.getByPlateNumber(TENANTID,plateNumber);
         log.info("月卡信息:{},plateNumber:{}",abpMonthlyCars,plateNumber);
         if(isMonthlyRenewal){

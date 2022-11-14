@@ -91,7 +91,7 @@ public interface PublicBasisService {
      * @param total_fee
      * @param depositCard
      */
-    void statement(String guid,BigDecimal fee,String uid,Integer total_fee,Integer depositCard);
+    void statement(String guid,BigDecimal fee,String uid,Integer total_fee,Integer depositCard,Integer payFrom);
 
     /**
      * 包月缴费
@@ -101,12 +101,21 @@ public interface PublicBasisService {
      * @param depositCard
      * @throws ParseException
      */
-    void monthPay(String device_info,String uid,Integer total_fee,Integer depositCard) throws ParseException;
+    void monthPay(String device_info,String uid,Integer total_fee,Integer depositCard,Integer payFrom) throws ParseException;
 
     /**
      * 账号充值
      * @param money
      * @param uid
      */
-    void saveRecharge(BigDecimal money , String uid);
+    void saveRecharge(BigDecimal money , String uid,Integer payFrom);
+
+    /**
+     * 包月校验
+     * @param isMonthlyRenewal
+     * @param plateNumber
+     * @param parkId
+     * @return
+     */
+    Result<?> checkMonthlyCar(boolean isMonthlyRenewal,String plateNumber,Integer parkId);
 }

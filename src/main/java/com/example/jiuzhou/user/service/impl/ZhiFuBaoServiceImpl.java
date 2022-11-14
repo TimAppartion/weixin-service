@@ -7,7 +7,9 @@ import com.alipay.api.AlipayConstants;
 import com.alipay.api.DefaultAlipayClient;
 import com.alipay.api.domain.AlipayTradePagePayModel;
 import com.alipay.api.internal.util.AlipaySignature;
+import com.example.jiuzhou.user.mapper.MonthRecordMapper;
 import com.example.jiuzhou.user.model.AbpWeixinConfig;
+import com.example.jiuzhou.user.model.MonthRecord;
 import com.example.jiuzhou.user.service.PublicBasisService;
 import org.apache.commons.lang.StringUtils;
 import com.alipay.api.request.*;
@@ -36,6 +38,7 @@ import java.math.BigDecimal;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 @Service
 @Slf4j
@@ -66,6 +69,9 @@ public class ZhiFuBaoServiceImpl implements ZhiFuBaoService {
 
     @Autowired
     private RedisTemplate redisTemplate;
+
+    @Resource
+    private MonthRecordMapper monthRecordMapper;
 
 
     @Override
@@ -133,6 +139,28 @@ public class ZhiFuBaoServiceImpl implements ZhiFuBaoService {
     @Transactional(rollbackFor = Exception.class)
     public Result<?> aliPay(ZhiFuBaoPayQuery query)  {
 
+
+        if(query.getBody().getType()==2){
+            query.getBody().setMonthRecordId(UUID.randomUUID().toString().replace("-",""));
+            if(query.getBody().getIsMonthlyRenewal()==null){
+                return Result.error(ResultEnum.MISS_DATA,"是否包月不可为空");
+            }
+            Result result=publicBasisService.checkMonthlyCar(query.getBody().getIsMonthlyRenewal(),query.getBody().getPlateNumber(),query.getBody().getParkId());
+            if(result.getCode()!=200){
+                return result;
+            }
+            MonthRecord monthRecord = new MonthRecord();
+            monthRecord.setId(query.getBody().getMonthRecordId());
+            monthRecord.setPlateNumber(query.getBody().getPlateNumber());
+            monthRecord.setMonthly_total_fee(query.getBody().getTotal_amount());
+            monthRecord.setParkId(query.getBody().getParkId());
+            monthRecord.setMonth(query.getBody().getMonth());
+            monthRecord.setMonthlyType(query.getBody().getMonthlyType());
+            monthRecord.setUid(query.getBody().getUid());
+            monthRecordMapper.insertOne(monthRecord);
+        }
+
+
         zfbOrdersMapper.insert(query.getBody());
 
 
@@ -143,10 +171,10 @@ public class ZhiFuBaoServiceImpl implements ZhiFuBaoService {
         AlipayTradeWapPayRequest alipayRequest = new AlipayTradeWapPayRequest ();
         alipayRequest.setReturnUrl(RETURN_URL);
         alipayRequest.setNotifyUrl(NOTIFY_URL);
-
         alipayRequest.setBizContent("{\"out_trade_no\":\"" + query.getOut_trade_no() + "\","
                 + "\"total_amount\":\"" + query.getTotal_amount() + "\","
                 + "\"subject\":\"" + query.getSubject() + "\","
+                + "\"quit_url\":\"" + query.getQuit_url() + "\","
                 + "\"product_code\":\"QUICK_WAP_WAY\"}");
 
 
@@ -219,15 +247,15 @@ public class ZhiFuBaoServiceImpl implements ZhiFuBaoService {
                 }
                 if(zfbOrders.getType() == 5){
                     log.info("账号充值");
-                    publicBasisService.saveRecharge(zfbOrders.getFee(),zfbOrders.getUid());
+                    publicBasisService.saveRecharge(zfbOrders.getFee(),zfbOrders.getUid(),2);
                 }
                 if(zfbOrders.getType() == 3){
                     log.info("自主结单");
-                    publicBasisService.statement(zfbOrders.getGuid(), zfbOrders.getFee(),zfbOrders.getUid(),zfbOrders.getTotal_amount().intValue(),config.getDepositCard());
+                    publicBasisService.statement(zfbOrders.getGuid(), zfbOrders.getFee(),zfbOrders.getUid(),zfbOrders.getTotal_amount().intValue(),config.getDepositCard(),2);
                 }
                 if(zfbOrders.getType() == 2){
                     log.info("包月缴费");
-                    publicBasisService.monthPay(zfbOrders.getMonthRecordId(), zfbOrders.getUid(), zfbOrders.getTotal_amount().intValue(),config.getDepositCard());
+                    publicBasisService.monthPay(zfbOrders.getMonthRecordId(), zfbOrders.getUid(), zfbOrders.getTotal_amount().multiply(new BigDecimal(100)).intValue(),config.getDepositCard(),2);
                 }
 
 
