@@ -13,4 +13,5 @@ public class UpdateUserQuery {
     private String nickName;
     private Integer sex;
     private String birthday;
+    private String tel;
 }

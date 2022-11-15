@@ -129,6 +129,7 @@ public class WeiXinOauthServiceImpl implements WeiXinOauthService {
         if(tUsersByTel.size()>=2){
             return Result.error(ResultEnum.ERROR);
         }
+        //非第一次注册 每次绑定更新手机号对应的openid或者userid
         newUser=tUsersByTel.get(0);
         if(StringUtils.isEmpty(newUser.getNickName()) && StringUtils.isNotEmpty(query.getNickName())){
             newUser.setNickName(query.getNickName());
@@ -138,6 +139,12 @@ public class WeiXinOauthServiceImpl implements WeiXinOauthService {
         }
         if(newUser.getSex()==null && newUser.getSex()!=null){
             newUser.setSex(query.getSex());
+        }
+        if(StringUtils.isNotEmpty(query.getOpenId())){
+            newUser.setOpenId(query.getOpenId());
+        }
+        if(StringUtils.isNotEmpty(query.getUserId())){
+            newUser.setUserId(query.getUserId());
         }
         tUserMapper.updateByPrimaryKey(newUser);
 

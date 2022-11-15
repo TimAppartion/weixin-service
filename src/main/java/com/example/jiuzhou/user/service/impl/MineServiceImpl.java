@@ -173,6 +173,14 @@ public class MineServiceImpl implements MineService {
         if(StringUtils.isNotEmpty(query.getBirthday())){
             tUser.setBirthday(query.getBirthday());
         }
+
+        if(StringUtils.isNotEmpty(query.getTel())){
+            TUser tUser1=tUserMapper.getByTel(query.getTel());
+            if(tUser1!=null){
+                return Result.error(ResultEnum.ERROR,"手机号已注册");
+            }
+            tUser.setTel(query.getTel());
+        }
         tUserMapper.updateByPrimaryKey(tUser);
         return Result.success("用户信息修改完成");
     }

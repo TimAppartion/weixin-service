@@ -169,7 +169,7 @@ public class ZhiFuBaoServiceImpl implements ZhiFuBaoService {
                 "json", "UTF-8", APP_PUBLIC_KEY,"RSA2");
         //设置请求参数
         AlipayTradeWapPayRequest alipayRequest = new AlipayTradeWapPayRequest ();
-        alipayRequest.setReturnUrl(RETURN_URL);
+        alipayRequest.setReturnUrl(RETURN_URL+"?orderId="+query.getOrderId());
         alipayRequest.setNotifyUrl(NOTIFY_URL);
         alipayRequest.setBizContent("{\"out_trade_no\":\"" + query.getOut_trade_no() + "\","
                 + "\"total_amount\":\"" + query.getTotal_amount() + "\","
