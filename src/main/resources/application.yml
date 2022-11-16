@@ -24,12 +24,12 @@ spring:
     date-format: "yyyy-MM-dd HH:mm:ss"
     time-zone: "GMT+8"
   application:
-    name: jiuzhou-service #项目名
+    name: jiuzhou-service #项目名aw
   profiles:
     active: prod
   datasource:
     driverClassName: com.microsoft.sqlserver.jdbc.SQLServerDriver
-    url: jdbc:sqlserver://120.26.37.170:1433;DatabaseName=new
+    url: jdbc:sqlserver://120.26.37.170:1433;DatabaseName=F2V20Init6
     username: sa
     password: Fxintel123
     #Mysql

@@ -19,8 +19,10 @@ import com.jfinal.kit.PropKit;
 import com.jfinal.kit.StrKit;
 import com.jfinal.weixin.sdk.api.PaymentApi;
 
+import com.jfinal.weixin.sdk.kit.IpKit;
 import com.jfinal.weixin.sdk.kit.PaymentKit;
 
+import com.jfinal.weixin.sdk.utils.HttpUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.time.DateFormatUtils;
@@ -684,6 +686,130 @@ public class PublicBasisServiceImpl implements PublicBasisService {
         }
         return Result.success();
     }
+
+    @Override
+    public Result<?> scanCode(WeiXinScanCodeQuery query) {
+        AbpWeixinConfig config= JSONObject.parseObject(redisTemplate.opsForValue().get("config").toString(),AbpWeixinConfig.class);
+        String out_trade_no=UUID.randomUUID().toString().replace("-","");
+
+        Map<String, String> params = new HashMap<String, String>();
+        params.put("appid", APP_ID);
+        params.put("mch_id", config.getMch_id());
+        params.put("device_info", "dingdingtc");// 终端设备号
+        params.put("nonce_str", System.currentTimeMillis() / 1000 + "");
+        params.put("body", "在线支付");
+        // params.put("detail", "json字符串");//非必须
+        params.put("out_trade_no", out_trade_no);
+        int price = ((int) (Float.valueOf(query.getTotal_fee().toString()) * 100));
+        params.put("total_fee", price + "");
+        String ip = "127.0.0.1";
+
+        params.put("spbill_create_ip", ip);
+        params.put("auth_code", query.getAuth_code());
+
+        String sign = PaymentKit.createSign(params, config.getPaternerKey());
+        params.put("sign", sign);
+
+        String xmlResult = HttpUtils.post("https://api.mch.weixin.qq.com/pay/micropay", PaymentKit.toXml(params));
+        // 同步返回结果
+        log.info("微信扫码支付返回结果：{}",xmlResult);
+
+        Map<String, String> result = PaymentKit.xmlToMap(xmlResult);
+        String return_code = result.get("return_code");
+        if (StrKit.isBlank(return_code) || !"SUCCESS".equals(return_code)) {
+            // 通讯失败
+            String err_code = result.get("err_code");
+            // 用户支付中，需要输入密码
+            if (err_code.equals("USERPAYING")) {
+                // 等待5秒后调用【查询订单API】https://pay.weixin.qq.com/wiki/doc/api/micropay.php?chapter=9_2
+            }
+            return Result.error(ResultEnum.ERROR,"通讯失败",xmlResult);
+        }
+
+        String result_code = result.get("result_code");
+        if (StrKit.isBlank(result_code) || !"SUCCESS".equals(result_code)) {
+            // 支付失败
+            return Result.error(ResultEnum.ERROR,"支付失败",xmlResult);
+        }
+        // 支付成功
+        Map<String, String> resultparams = PaymentKit.xmlToMap(xmlResult);
+
+        Weixinorders order = new Weixinorders();
+        order.setAppid( resultparams.get("appid"));
+        order.setOut_trade_no(out_trade_no);
+        order.setOpenId(resultparams.get("openid"));
+        // 商户号
+        order.setMch_id(resultparams.get("mch_id"));
+        // 现金支付金额
+        order.setCash_fee(Integer.valueOf(resultparams.get("cash_fee")));
+        // 总金额
+        order.setTotal_fee(Integer.valueOf(resultparams.get("total_fee")));
+        order.setFee_type(resultparams.get("fee_type"));
+        order.setResult_code( resultparams.get("result_code"));
+        order.setErr_code(resultparams.get("err_code"));
+        order.setIs_subscribe(resultparams.get("is_subscribe"));
+        order.setTrade_type(resultparams.get("trade_type"));
+        order.setBank_type(resultparams.get("bank_type"));
+        order.setTransaction_id(resultparams.get("transaction_id"));
+
+        String attach = JsonKit.toJson(new PayAttach(out_trade_no,query.getPayType(), 3, query.getGuid())) + "|" + query.getPayType();
+        order.setAttach(attach);
+        order.setTime_end(resultparams.get("time_end"));
+        order.setCouresCount(0);
+        order.setCouresId(query.getPayType());
+        order.setUrl("");
+
+        // 注意重复通知的情况，同一订单号可能收到多次通知，请注意一定先判断订单状态
+        // 避免已经成功、关闭、退款的订单被再次更新
+        Weixinorders hisOrder = weixinordersMapper.getByTransactionId(resultparams.get("transaction_id"));
+        if (hisOrder == null) {
+            weixinordersMapper.insertOne(order);
+        }
+
+        resultparams.put("out_trade_no",out_trade_no);
+
+        return Result.success(resultparams);
+    }
+
+    @Override
+    public Result<?> weiXinWriteOrder(WeiXinWriteOrderQuery query) {
+        Map<String, String> resultparams = PaymentKit.xmlToMap(query.getXmlResult());
+        Weixinorders order = new Weixinorders();
+        order.setAppid( resultparams.get("appid"));
+        order.setOut_trade_no(resultparams.get("out_trade_no"));
+        order.setOpenId(resultparams.get("openid"));
+        // 商户号
+        order.setMch_id(resultparams.get("mch_id"));
+        // 现金支付金额
+        order.setCash_fee(Integer.valueOf(resultparams.get("cash_fee")));
+        // 总金额
+        order.setTotal_fee(Integer.valueOf(resultparams.get("total_fee")));
+        order.setFee_type(resultparams.get("fee_type"));
+        order.setResult_code( resultparams.get("result_code"));
+        order.setErr_code(resultparams.get("err_code"));
+        order.setIs_subscribe(resultparams.get("is_subscribe"));
+        order.setTrade_type(resultparams.get("trade_type"));
+        order.setBank_type(resultparams.get("bank_type"));
+        order.setTransaction_id(resultparams.get("transaction_id"));
+
+        String attach = JsonKit.toJson(new PayAttach(resultparams.get("out_trade_no"),query.getPayType(), 3, query.getGuid())) + "|" + query.getPayType();
+        order.setAttach(attach);
+        order.setTime_end(resultparams.get("time_end"));
+        order.setCouresCount(0);
+        order.setCouresId(query.getPayType());
+        order.setUrl("");
+
+        // 注意重复通知的情况，同一订单号可能收到多次通知，请注意一定先判断订单状态
+        // 避免已经成功、关闭、退款的订单被再次更新
+        Weixinorders hisOrder = weixinordersMapper.getByTransactionId(resultparams.get("transaction_id"));
+        if (hisOrder == null) {
+            weixinordersMapper.insertOne(order);
+        }
+
+
+        return Result.success(query.getXmlResult());
+    }
+
 
     private String StopTimes(int StopTime) {
         if (StopTime == 0)

@@ -13,6 +13,7 @@
     <!-- CONSOLG 控制台日志-->
     <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
+            <charset>UTF-8</charset>
             <pattern>${pattern}</pattern>
             <charset>${charsetEncoding}</charset>
         </encoder>

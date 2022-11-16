@@ -94,6 +94,14 @@ public class PublicBasisController {
         }
         return publicBasisService.WeiXinPay(query);
     }
+    @PostMapping("/WeiXinScanCode")
+    public Result<?> scanCode(@RequestBody WeiXinScanCodeQuery query){
+        return publicBasisService.scanCode(query);
+    }
+    @PostMapping("/WeiXinWriteOrder")
+    public Result<?> weiXinWriteOrder(@RequestBody  WeiXinWriteOrderQuery query){
+        return publicBasisService.weiXinWriteOrder(query);
+    }
 
     @RequestMapping("/WeiXinCallBack")
     public String weiXinCallBack(HttpServletRequest request) throws IOException, ParseException {

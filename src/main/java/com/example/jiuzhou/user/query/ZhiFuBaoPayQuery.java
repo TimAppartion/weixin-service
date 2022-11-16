@@ -28,9 +28,6 @@ public class ZhiFuBaoPayQuery {
      */
     private String subject;
 
-    /**
-     * 评价的订单id
-     */
-    private String orderId;
     private String quit_url;
+    private String return_url;
 }

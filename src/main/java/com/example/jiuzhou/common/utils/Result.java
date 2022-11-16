@@ -68,7 +68,13 @@ public class Result<T> {
         result.setMsg(StringUtils.isEmpty(msg)? resultEnum.getMsg():msg);
         return result;
     }
-
+    public static <T>Result<T> error(ResultEnum resultEnum, String msg,T data) {
+        Result result = new Result();
+        result.setCode(resultEnum.getCode());
+        result.setMsg(StringUtils.isEmpty(msg)? resultEnum.getMsg():msg);
+        result.setData(data);
+        return result;
+    }
     public static <T> Result<T> error(ResultEnum resultEnum, T data) {
         Result result = new Result();
         result.setCode(resultEnum.getCode());

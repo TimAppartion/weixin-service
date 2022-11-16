@@ -52,6 +52,7 @@ public class ZhiFuBaoServiceImpl implements ZhiFuBaoService {
     private static String APP_URL=prop.get("app_url");
     private static String NOTIFY_URL=prop.get("notify_url");
     private static String RETURN_URL=prop.get("return_url");
+
     private static String PID=prop.get("pid");
 
 
@@ -116,7 +117,7 @@ public class ZhiFuBaoServiceImpl implements ZhiFuBaoService {
                 "json", "UTF-8", APP_PUBLIC_KEY,"RSA2");
 
         AlipayTradePrecreateRequest alipayRequest = new AlipayTradePrecreateRequest();
-        alipayRequest.setReturnUrl(RETURN_URL);
+        alipayRequest.setReturnUrl(query.getReturn_url());
         alipayRequest.setNotifyUrl(NOTIFY_URL);
 
 
@@ -169,7 +170,7 @@ public class ZhiFuBaoServiceImpl implements ZhiFuBaoService {
                 "json", "UTF-8", APP_PUBLIC_KEY,"RSA2");
         //设置请求参数
         AlipayTradeWapPayRequest alipayRequest = new AlipayTradeWapPayRequest ();
-        alipayRequest.setReturnUrl(RETURN_URL+"?orderId="+query.getOrderId());
+        alipayRequest.setReturnUrl(query.getReturn_url());
         alipayRequest.setNotifyUrl(NOTIFY_URL);
         alipayRequest.setBizContent("{\"out_trade_no\":\"" + query.getOut_trade_no() + "\","
                 + "\"total_amount\":\"" + query.getTotal_amount() + "\","
@@ -279,7 +280,7 @@ public class ZhiFuBaoServiceImpl implements ZhiFuBaoService {
         AlipayTradePagePayRequest request = new AlipayTradePagePayRequest();
         //支付宝公共参数
         request.setNotifyUrl(NOTIFY_URL);
-        request.setReturnUrl(RETURN_URL);
+        request.setReturnUrl(query.getReturn_url());
         //面向对象封装业务参数
         AlipayTradePagePayModel model =new AlipayTradePagePayModel();
         model.setOutTradeNo(query.getOut_trade_no());

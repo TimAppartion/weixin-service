@@ -118,4 +118,18 @@ public interface PublicBasisService {
      * @return
      */
     Result<?> checkMonthlyCar(boolean isMonthlyRenewal,String plateNumber,Integer parkId);
+
+    /**
+     * 手持机扫码支付
+     * @param query
+     * @return
+     */
+    Result<?> scanCode(WeiXinScanCodeQuery query);
+
+    /**
+     * 订单写入系统
+     * @param query
+     * @return
+     */
+    Result<?> weiXinWriteOrder(WeiXinWriteOrderQuery query);
 }

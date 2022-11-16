@@ -65,15 +65,17 @@ public class RecordController {
         params.put("mch_id",config.getMch_id());
         params.put("out_trade_no",out_trade_no);
         params.put("nonce_str",System.currentTimeMillis() / 1000 + "");
-        String sign = PaymentKit.createSign(params, config.getMch_id());
+        String sign = PaymentKit.createSign(params, config.getPaternerKey());
         params.put("sign", sign);
 
         String xmlResult = HttpUtils.post("https://api.mch.weixin.qq.com/pay/orderquery",PaymentKit.toXml(params));
-        return Result.success(xmlResult);
+        Map<String , String > resultMap=new HashMap<>();
+        resultMap = PaymentKit.xmlToMap(xmlResult);
+        return Result.success(resultMap);
     }
 
     @GetMapping("/WeiXinQrCode")
-    public Result<?> WeiXinQrCode(@RequestParam(value = "money", required = false) BigDecimal money) throws Exception {
+    public Result<?> weiXinQrCode(@RequestParam(value = "money", required = false) BigDecimal money) throws Exception {
         AbpWeixinConfig config= JSONObject.parseObject(redisTemplate.opsForValue().get("config").toString(),AbpWeixinConfig.class);
 
         String orderId=UUID.randomUUID().toString().replace("-","");
@@ -93,6 +95,7 @@ public class RecordController {
         String xmlResult = HttpUtils.post("https://api.mch.weixin.qq.com/pay/unifiedorder",PaymentKit.toXml(map));
         Map<String , String > resultMap=new HashMap<>();
         resultMap = PaymentKit.xmlToMap(xmlResult);
+        resultMap.put("out_trade_no",orderId);
         return Result.success(resultMap);
 
     }
@@ -115,7 +118,7 @@ public class RecordController {
 
     /**
 
-     * md5和base64混合加密
+     * md5和base64混合加密wd
 
      * @author mao
 
