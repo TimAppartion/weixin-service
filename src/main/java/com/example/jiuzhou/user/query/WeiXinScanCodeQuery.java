@@ -14,7 +14,6 @@ public class WeiXinScanCodeQuery {
     private String auth_code;
     private BigDecimal total_fee;
     private String guid;
-    private Integer PayType;
-    private String out_trade_no;
+    private Integer pay_type;
 
 }

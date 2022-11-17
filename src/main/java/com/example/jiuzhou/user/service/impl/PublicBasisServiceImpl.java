@@ -689,6 +689,7 @@ public class PublicBasisServiceImpl implements PublicBasisService {
 
     @Override
     public Result<?> scanCode(WeiXinScanCodeQuery query) {
+        log.info("手机扫码支付传参：{}",query);
         AbpWeixinConfig config= JSONObject.parseObject(redisTemplate.opsForValue().get("config").toString(),AbpWeixinConfig.class);
         String out_trade_no=UUID.randomUUID().toString().replace("-","");
 
@@ -715,66 +716,77 @@ public class PublicBasisServiceImpl implements PublicBasisService {
         log.info("微信扫码支付返回结果：{}",xmlResult);
 
         Map<String, String> result = PaymentKit.xmlToMap(xmlResult);
+        result.put("out_trade_no",out_trade_no);
         String return_code = result.get("return_code");
-        if (StrKit.isBlank(return_code) || !"SUCCESS".equals(return_code)) {
+        if (StringUtils.isEmpty(return_code) || !"SUCCESS".equals(return_code)) {
             // 通讯失败
             String err_code = result.get("err_code");
             // 用户支付中，需要输入密码
             if (err_code.equals("USERPAYING")) {
                 // 等待5秒后调用【查询订单API】https://pay.weixin.qq.com/wiki/doc/api/micropay.php?chapter=9_2
             }
-            return Result.error(ResultEnum.ERROR,"通讯失败",xmlResult);
+            return Result.error(ResultEnum.ERROR,"通讯失败",result);
         }
 
         String result_code = result.get("result_code");
-        if (StrKit.isBlank(result_code) || !"SUCCESS".equals(result_code)) {
+        if (StringUtils.isEmpty(result_code) || !"SUCCESS".equals(result_code)) {
             // 支付失败
-            return Result.error(ResultEnum.ERROR,"支付失败",xmlResult);
+            return Result.error(ResultEnum.ERROR,"支付失败",result);
         }
         // 支付成功
-        Map<String, String> resultparams = PaymentKit.xmlToMap(xmlResult);
+        Map<String, String> resultParams = PaymentKit.xmlToMap(xmlResult);
 
         Weixinorders order = new Weixinorders();
-        order.setAppid( resultparams.get("appid"));
+        order.setAppid( resultParams.get("appid"));
         order.setOut_trade_no(out_trade_no);
-        order.setOpenId(resultparams.get("openid"));
+        order.setOpenId(resultParams.get("openid"));
         // 商户号
-        order.setMch_id(resultparams.get("mch_id"));
+        order.setMch_id(resultParams.get("mch_id"));
         // 现金支付金额
-        order.setCash_fee(Integer.valueOf(resultparams.get("cash_fee")));
+        order.setCash_fee(Integer.valueOf(resultParams.get("cash_fee")));
         // 总金额
-        order.setTotal_fee(Integer.valueOf(resultparams.get("total_fee")));
-        order.setFee_type(resultparams.get("fee_type"));
-        order.setResult_code( resultparams.get("result_code"));
-        order.setErr_code(resultparams.get("err_code"));
-        order.setIs_subscribe(resultparams.get("is_subscribe"));
-        order.setTrade_type(resultparams.get("trade_type"));
-        order.setBank_type(resultparams.get("bank_type"));
-        order.setTransaction_id(resultparams.get("transaction_id"));
+        order.setTotal_fee(Integer.valueOf(resultParams.get("total_fee")));
+        order.setFee_type(resultParams.get("fee_type"));
+        order.setResult_code( resultParams.get("result_code"));
+        order.setErr_code(resultParams.get("err_code"));
+        order.setIs_subscribe(resultParams.get("is_subscribe"));
+        order.setTrade_type(resultParams.get("trade_type"));
+        order.setBank_type(resultParams.get("bank_type"));
+        order.setTransaction_id(resultParams.get("transaction_id"));
 
-        String attach = JsonKit.toJson(new PayAttach(out_trade_no,query.getPayType(), 3, query.getGuid())) + "|" + query.getPayType();
+        String attach = JsonKit.toJson(new PayAttach(out_trade_no,query.getPay_type(), 3, query.getGuid())) + "|" + query.getPay_type();
         order.setAttach(attach);
-        order.setTime_end(resultparams.get("time_end"));
+        order.setTime_end(resultParams.get("time_end"));
         order.setCouresCount(0);
-        order.setCouresId(query.getPayType());
+        order.setCouresId(query.getPay_type());
         order.setUrl("");
 
         // 注意重复通知的情况，同一订单号可能收到多次通知，请注意一定先判断订单状态
         // 避免已经成功、关闭、退款的订单被再次更新
-        Weixinorders hisOrder = weixinordersMapper.getByTransactionId(resultparams.get("transaction_id"));
+        Weixinorders hisOrder = weixinordersMapper.getByTransactionId(resultParams.get("transaction_id"));
         if (hisOrder == null) {
+            TUser tUser=tUserMapper.getByOpenId(order.getOpenId());
+            if(tUser==null){
+                return Result.error(ResultEnum.ERROR,"为查询到用户信息",resultParams);
+            }
+            order.setUid(tUser.getUid());
             weixinordersMapper.insertOne(order);
         }
 
-        resultparams.put("out_trade_no",out_trade_no);
+        resultParams.put("out_trade_no",out_trade_no);
 
-        return Result.success(resultparams);
+        return Result.success(resultParams);
     }
 
     @Override
     public Result<?> weiXinWriteOrder(WeiXinWriteOrderQuery query) {
-        Map<String, String> resultparams = PaymentKit.xmlToMap(query.getXmlResult());
+        log.info("微信支付写入参数：{}",query);
+        Map<String, String> resultparams = (Map<String, String>) JSONObject.parse(query.getXmlResult());
         Weixinorders order = new Weixinorders();
+        String return_code = resultparams.get("return_code");
+        if(StringUtils.isEmpty(return_code) || !"SUCCESS".equals(return_code)){
+            return Result.error(ResultEnum.ERROR,"写入失败",resultparams);
+        }
         order.setAppid( resultparams.get("appid"));
         order.setOut_trade_no(resultparams.get("out_trade_no"));
         order.setOpenId(resultparams.get("openid"));
@@ -803,6 +815,11 @@ public class PublicBasisServiceImpl implements PublicBasisService {
         // 避免已经成功、关闭、退款的订单被再次更新
         Weixinorders hisOrder = weixinordersMapper.getByTransactionId(resultparams.get("transaction_id"));
         if (hisOrder == null) {
+            TUser tUser=tUserMapper.getByOpenId(order.getOpenId());
+            if(tUser==null){
+                return Result.error(ResultEnum.ERROR,"为查询到用户信息",resultparams);
+            }
+            order.setUid(tUser.getUid());
             weixinordersMapper.insertOne(order);
         }
 
