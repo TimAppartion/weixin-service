@@ -9,6 +9,7 @@ import com.example.jiuzhou.user.service.ZhiFuBaoService;
 import com.jfinal.kit.Prop;
 import com.jfinal.kit.PropKit;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
@@ -43,15 +44,35 @@ public class ZhiFuBaoPayController {
     private ZhiFuBaoService zhiFuBaoService;
     /**
      * 支付宝支付 返回链接
-     *
+     * 生成二维码
      * @return
      */
     @RequestMapping("/pay")
     public Result<?> pay(@RequestBody ZhiFuBaoPayQuery query)throws Exception{
-
         return zhiFuBaoService.pay(query);
-
     }
+    @GetMapping("/tradeQuery")
+    public Result<?> tradeQuery(@RequestParam(value = "out_trade_no", required = false) String out_trade_no){
+        if(StringUtils.isEmpty(out_trade_no)){
+            return Result.error("订单号不可为空");
+        }
+        return zhiFuBaoService.tradeQuery(out_trade_no);
+    }
+
+    /**
+     * 支付宝支付扫码付钱
+     * @param query
+     * @return
+     */
+    @RequestMapping("/tradePay")
+    public Result<?> tradePay(@RequestBody ZhiFuBaoPayQuery query){
+        if(StringUtils.isEmpty(query.getAuth_code())){
+            return Result.error("付款码不可为空");
+        }
+        return zhiFuBaoService.tradePay(query);
+    }
+
+
 
     /**
      * 支付宝pc网页支付下单

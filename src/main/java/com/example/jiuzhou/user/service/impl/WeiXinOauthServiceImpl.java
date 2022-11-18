@@ -123,7 +123,7 @@ public class WeiXinOauthServiceImpl implements WeiXinOauthService {
             newUser.setSendWeixinNumber(0);
 
             tUserMapper.insetOne(newUser);
-            createAccount(query.getMobile());
+            createAccount(query.getMobile(),StringUtils.isEmpty(query.getUserId())?"微信":"支付宝");
             return Result.success(newUser);
         }
         if(tUsersByTel.size()>=2){
@@ -155,8 +155,9 @@ public class WeiXinOauthServiceImpl implements WeiXinOauthService {
     /**
      * 创建储值卡
      * @param mobile
+     * @param from
      */
-    private void createAccount(String mobile){
+    private void createAccount(String mobile,String from){
         //取系统配置信息
         AbpWeixinConfig config=JSONObject.parseObject(redisTemplate.opsForValue().get("config").toString(),AbpWeixinConfig.class);
 
@@ -170,7 +171,7 @@ public class WeiXinOauthServiceImpl implements WeiXinOauthService {
         if(tUser!=null&&a==null){
             //开通储值卡
             ExtOtherAccount extOtherAccount=new ExtOtherAccount();
-            extOtherAccount.setAuthenticationSource("WeiXin");
+            extOtherAccount.setAuthenticationSource(from);
             extOtherAccount.setUserName(mobile);
             extOtherAccount.setName(mobile);
             extOtherAccount.setPassword("123456");
@@ -199,7 +200,7 @@ public class WeiXinOauthServiceImpl implements WeiXinOauthService {
             abpDeductionRecords.setOperType(1);
             abpDeductionRecords.setMoney(new BigDecimal(0));
             abpDeductionRecords.setPayStatus(1);
-            abpDeductionRecords.setRemark("微信开户");
+            abpDeductionRecords.setRemark(from+"开户");
             abpDeductionRecords.setEmployeeId(config.getDepositCard());
             abpDeductionRecords.setTenantId(TENANTID);
             abpDeductionRecords.setCompanyId(TENANTID);

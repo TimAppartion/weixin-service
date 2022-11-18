@@ -14,7 +14,6 @@ import java.math.BigDecimal;
  */
 @Data
 public class ZhiFuBaoPayQuery {
-    @NotNull(message = "交易订单不可为空")
     private String out_trade_no;
     private ZfbOrders body;
 
@@ -28,6 +27,10 @@ public class ZhiFuBaoPayQuery {
      */
     private String subject;
 
+    /**
+     * 付款码
+     */
+    private String auth_code;
     private String quit_url;
     private String return_url;
 }

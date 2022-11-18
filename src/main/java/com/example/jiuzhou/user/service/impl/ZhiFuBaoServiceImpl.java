@@ -120,11 +120,13 @@ public class ZhiFuBaoServiceImpl implements ZhiFuBaoService {
         alipayRequest.setReturnUrl(query.getReturn_url());
         alipayRequest.setNotifyUrl(NOTIFY_URL);
 
+        String out_trade_no = UUID.randomUUID().toString();
 
         JSONObject bizContent = new JSONObject();
-        bizContent.put("out_trade_no", query.getOut_trade_no());
+        bizContent.put("out_trade_no", out_trade_no);
         bizContent.put("total_amount", query.getTotal_amount());
         bizContent.put("subject", query.getSubject());
+        bizContent.put("body",query.getBody());
 
         alipayRequest.setBizContent(bizContent.toString());
         AlipayTradePrecreateResponse response = alipayClient.execute(alipayRequest);
@@ -193,6 +195,7 @@ public class ZhiFuBaoServiceImpl implements ZhiFuBaoService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public String  callback(Map<String, String> params) {
         String result = "failure";
         String outTradeNo = params.get("out_trade_no");
@@ -302,5 +305,55 @@ public class ZhiFuBaoServiceImpl implements ZhiFuBaoService {
             return Result.error(ResultEnum.ERROR,"支付宝pc网页支付下单");
         }
         return null;
+    }
+
+    @Override
+    public Result<?> tradeQuery(String out_trade_no) {
+        AlipayClient alipayClient = new DefaultAlipayClient(APP_URL,APP_ID,APP_PRIVATE_KEY,"json",CHARSEt,APP_PUBLIC_KEY,"RSA2");
+
+
+        AlipayTradeQueryRequest request = new AlipayTradeQueryRequest();
+        JSONObject bizContent = new JSONObject();
+        bizContent.put("out_trade_no", out_trade_no);
+        //bizContent.put("trade_no", "2014112611001004680073956707");
+        request.setBizContent(bizContent.toString());
+        try {
+            AlipayTradeQueryResponse response = alipayClient.execute(request);
+            if(response.isSuccess()){
+                System.out.println("调用成功");
+            } else {
+                System.out.println("调用失败");
+            }
+            return Result.success(response);
+        }catch (AlipayApiException e){
+            e.printStackTrace();
+            return Result.error(ResultEnum.ERROR,"查询失败");
+        }
+
+    }
+
+    @Override
+    public Result<?> tradePay(ZhiFuBaoPayQuery query) {
+        AlipayClient alipayClient = new DefaultAlipayClient(APP_URL,APP_ID,APP_PRIVATE_KEY,"json",CHARSEt,APP_PUBLIC_KEY,"RSA2");
+
+
+        AlipayTradePayRequest request = new AlipayTradePayRequest();  //创建API对应的request类
+        request.setBizContent ( "{"   +
+                "\"out_trade_no\":\""+UUID.randomUUID()+"\","   +
+                "\"scene\":\"bar_code\","   +
+                "\"auth_code\":\""+query.getAuth_code()+"\","   + //即用户在支付宝客户端内出示的付款码，使用一次即失效，需要刷新后再去付款
+                "\"subject\":\""+query.getSubject()+"\","   +
+                "\"timeout_express\":\"2m\","   +
+                "\"total_amount\":\""+query.getTotal_amount()+"\""   +
+                "}" );  //设置业务参数
+        try{
+            AlipayTradePayResponse response = alipayClient.execute( request );  //通过alipayClient调用API，获得对应的response类
+            return Result.success(response);
+        }catch (AlipayApiException e){
+            e.printStackTrace();
+            return Result.error("支付失败");
+        }
+        // 根据response中的结果继续业务逻辑处理
+
     }
 }
