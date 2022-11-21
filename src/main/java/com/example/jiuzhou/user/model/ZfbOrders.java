@@ -7,6 +7,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import javax.persistence.Column;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.util.Date;
 
@@ -74,4 +75,11 @@ public class ZfbOrders {
 
     @Column(name = "monthRecordId")
     private String monthRecordId;
+
+    @Column(name = "userId")
+    private String userId;
+
+    @NotNull(message = "支付来源不可为空")
+    @Column(name = "payFrom")
+    private Integer payFrom;
 }

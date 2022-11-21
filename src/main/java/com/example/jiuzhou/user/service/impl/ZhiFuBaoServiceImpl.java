@@ -120,13 +120,10 @@ public class ZhiFuBaoServiceImpl implements ZhiFuBaoService {
         alipayRequest.setReturnUrl(query.getReturn_url());
         alipayRequest.setNotifyUrl(NOTIFY_URL);
 
-        String out_trade_no = UUID.randomUUID().toString();
-
         JSONObject bizContent = new JSONObject();
-        bizContent.put("out_trade_no", out_trade_no);
+        bizContent.put("out_trade_no", query.getOut_trade_no());
         bizContent.put("total_amount", query.getTotal_amount());
         bizContent.put("subject", query.getSubject());
-        bizContent.put("body",query.getBody());
 
         alipayRequest.setBizContent(bizContent.toString());
         AlipayTradePrecreateResponse response = alipayClient.execute(alipayRequest);
@@ -205,7 +202,7 @@ public class ZhiFuBaoServiceImpl implements ZhiFuBaoService {
 
         try {
 
-
+            zfbOrders.setUserId(params.get("buyer_id"));
             log.info("支付宝业务数据：{},交易号的id:{}" ,zfbOrders,outTradeNo);
             //异步通知验签
             boolean signVerified = AlipaySignature.rsaCheckV1(params,
@@ -245,24 +242,27 @@ public class ZhiFuBaoServiceImpl implements ZhiFuBaoService {
                 //优惠前的金额
                 BigDecimal fee = zfbOrders.getFee();
                 //在线补缴
-                if(zfbOrders.getType() == 4 && StringUtils.isNotEmpty(zfbOrders.getGuid())){
-                    log.info("处理在线补缴");
-                    publicBasisService.payment(zfbOrders.getTotal_amount().multiply(new BigDecimal(100)).intValue(), zfbOrders.getGuid(),config.getDepositCard(),zfbOrders.getUid(),zfbOrders.getFee() );
+                if(zfbOrders.getPayFrom()==2) {
+                    if (zfbOrders.getType() == 4 && StringUtils.isNotEmpty(zfbOrders.getGuid())) {
+                        log.info("处理在线补缴");
+                        publicBasisService.payment(zfbOrders.getTotal_amount().multiply(new BigDecimal(100)).intValue(), zfbOrders.getGuid(), config.getDepositCard(), zfbOrders.getUid(), zfbOrders.getFee());
+                    }
+                    if (zfbOrders.getType() == 5) {
+                        log.info("账号充值");
+                        publicBasisService.saveRecharge(zfbOrders.getFee(), zfbOrders.getUid(), 2);
+                    }
+                    if (zfbOrders.getType() == 3) {
+                        log.info("自主结单");
+                        publicBasisService.statement(zfbOrders.getGuid(), zfbOrders.getFee(), zfbOrders.getUid(), zfbOrders.getTotal_amount().intValue(), config.getDepositCard(), 2);
+                    }
+                    if (zfbOrders.getType() == 2) {
+                        log.info("包月缴费");
+                        publicBasisService.monthPay(zfbOrders.getMonthRecordId(), zfbOrders.getUid(), zfbOrders.getTotal_amount().multiply(new BigDecimal(100)).intValue(), config.getDepositCard(), 2);
+                    }
                 }
-                if(zfbOrders.getType() == 5){
-                    log.info("账号充值");
-                    publicBasisService.saveRecharge(zfbOrders.getFee(),zfbOrders.getUid(),2);
-                }
-                if(zfbOrders.getType() == 3){
-                    log.info("自主结单");
-                    publicBasisService.statement(zfbOrders.getGuid(), zfbOrders.getFee(),zfbOrders.getUid(),zfbOrders.getTotal_amount().intValue(),config.getDepositCard(),2);
-                }
-                if(zfbOrders.getType() == 2){
-                    log.info("包月缴费");
-                    publicBasisService.monthPay(zfbOrders.getMonthRecordId(), zfbOrders.getUid(), zfbOrders.getTotal_amount().multiply(new BigDecimal(100)).intValue(),config.getDepositCard(),2);
-                }
-
-
+                zfbOrders.setIsOver(2);
+                zfbOrders.setOverTime(new Date());
+                zfbOrdersMapper.updateByPrimaryKey(zfbOrders);
                 result = "success";
             }
         } catch (Exception e) {
@@ -339,7 +339,7 @@ public class ZhiFuBaoServiceImpl implements ZhiFuBaoService {
 
         AlipayTradePayRequest request = new AlipayTradePayRequest();  //创建API对应的request类
         request.setBizContent ( "{"   +
-                "\"out_trade_no\":\""+UUID.randomUUID()+"\","   +
+                "\"out_trade_no\":\""+query.getOut_trade_no()+"\","   +
                 "\"scene\":\"bar_code\","   +
                 "\"auth_code\":\""+query.getAuth_code()+"\","   + //即用户在支付宝客户端内出示的付款码，使用一次即失效，需要刷新后再去付款
                 "\"subject\":\""+query.getSubject()+"\","   +

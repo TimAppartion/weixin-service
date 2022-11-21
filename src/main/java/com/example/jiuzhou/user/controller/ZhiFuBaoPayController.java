@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.alipay.api.*;
 import com.example.jiuzhou.common.utils.Result;
 import com.example.jiuzhou.user.mapper.ZfbOrdersMapper;
+import com.example.jiuzhou.user.model.ZfbOrders;
 import com.example.jiuzhou.user.query.ZhiFuBaoPayQuery;
 import com.example.jiuzhou.user.service.ZhiFuBaoService;
 import com.jfinal.kit.Prop;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
 import java.util.Date;
 import java.util.Map;
+import java.util.UUID;
 
 
 /**
@@ -48,7 +50,18 @@ public class ZhiFuBaoPayController {
      * @return
      */
     @RequestMapping("/pay")
+    @Transactional( rollbackFor = Exception.class)
     public Result<?> pay(@RequestBody ZhiFuBaoPayQuery query)throws Exception{
+        log.info("支付宝手持机生成二维码链接:{}",query);
+        String out_trade_no = UUID.randomUUID().toString();
+        query.setOut_trade_no(out_trade_no);
+        query.getBody().setOut_trade_no(out_trade_no);
+        query.getBody().setOrdersTime(new Date());
+        query.getBody().setIsOver(1);
+        query.getBody().setTotal_amount(query.getTotal_amount());
+        query.getBody().setSubject(query.getSubject());
+        query.getBody().setFee(query.getTotal_amount());
+        zfbOrdersMapper.insert(query.getBody());
         return zhiFuBaoService.pay(query);
     }
     @GetMapping("/tradeQuery")
@@ -66,12 +79,31 @@ public class ZhiFuBaoPayController {
      */
     @RequestMapping("/tradePay")
     public Result<?> tradePay(@RequestBody ZhiFuBaoPayQuery query){
+        log.info("支付宝手持机扫码支付收钱：{}",query);
         if(StringUtils.isEmpty(query.getAuth_code())){
             return Result.error("付款码不可为空");
         }
+        String out_trade_no=UUID.randomUUID().toString();
+        query.setOut_trade_no(out_trade_no);
+        query.getBody().setOut_trade_no(out_trade_no);
+        query.getBody().setOrdersTime(new Date());
+        query.getBody().setIsOver(1);
+        query.getBody().setTotal_amount(query.getTotal_amount());
+        query.getBody().setSubject(query.getSubject());
+        query.getBody().setFee(query.getTotal_amount());
+        zfbOrdersMapper.insert(query.getBody());
         return zhiFuBaoService.tradePay(query);
     }
 
+    @RequestMapping("/writeOrders")
+    public Result<?> writeOrders(@RequestBody ZfbOrders query){
+        log.info("支付宝手持机写入支付:{}",query);
+        query.setIsOver(1);
+        query.setOrdersTime(new Date());
+        query.setFee(query.getFee());
+        zfbOrdersMapper.insert(query);
+        return Result.success("支付宝订单记录写入成功");
+    }
 
 
     /**
