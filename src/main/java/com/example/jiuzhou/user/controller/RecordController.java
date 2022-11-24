@@ -87,8 +87,8 @@ public class RecordController {
         map.put("body","停车管理收费");
         map.put("out_trade_no",orderId);
         map.put("total_fee",money.toString());
-        map.put("spbill_create_ip","120.26.37.170");
-        map.put("notify_url","http://120.26.37.170:8000/api/InterfacePDA/WinxinPayBackMessage");
+        map.put("spbill_create_ip","123.60.44.222");
+        map.put("notify_url","http://123.60.44.222:8000/api/InterfacePDA/WinxinPayBackMessage");
         map.put("trade_type","NATIVE");
         String sign = WXPayUtil.generateSignature(map,"fxintelfxintelfxintelfxintel0913", WXPayConstants.SignType.MD5);
         map.put("sign",sign);
