@@ -272,7 +272,7 @@ public class PublicBasisServiceImpl implements PublicBasisService {
 
 
                 if(courseId == 4 && StringUtils.isNotEmpty(guid)){//处理在线补缴
-                    this.payment(order.getTotal_fee(),guid,config.getDepositCard(),order.getUid(),fee);
+                    this.payment(order.getTotal_fee(),guid,config.getDepositCard(),order.getUid(),fee,4);
                 }
                 if(courseId == 5){//账号充值
                     log.info("账号充值");
@@ -343,30 +343,32 @@ public class PublicBasisServiceImpl implements PublicBasisService {
     }
 
     @Override
-    public void payment(Integer totalFee,String guid,Integer depositCard,String uid,BigDecimal fee){
+    public void payment(Integer totalFee,String guid,Integer depositCard,String uid,BigDecimal fee,Integer payFrom){
         String[] guids=guid.split(",");
         for(int i=0;i<guids.length;i++){
-            updateOrder(guids[i],new BigDecimal(totalFee));
+            updateOrder(guids[i],new BigDecimal(totalFee),payFrom);
         }
 
         ExtOtherAccount account = extOtherAccountMapper.getByUid(uid);
-        String tf = String.valueOf(Double.valueOf(totalFee)*0.01);
-        AbpDeductionRecords deductionRecords=new AbpDeductionRecords();
-        deductionRecords.setOtherAccountId(account.getId());
-        deductionRecords.setOperType(1);
-        deductionRecords.setMoney(new BigDecimal(tf));
-        deductionRecords.setPayStatus(1);
-        deductionRecords.setRemark("欠费补缴");
-        deductionRecords.setEmployeeId(depositCard);
-        deductionRecords.setTenantId(TENANTID);
-        deductionRecords.setCompanyId(MONECOMPANYID);
-        deductionRecords.setUserId(MONEUSERID);
-        deductionRecords.setCardNo(account.getCardNo());
-        deductionRecords.setBeginMoney(account.getWallet());
-        deductionRecords.setEndMoney(fee);
-        deductionRecords.setPayFrom(1);
-        deductionRecords.setInTime(new Date());
-        abpDeductionRecordsMapper.insetOne(deductionRecords);
+        if(account!=null) {
+            String tf = String.valueOf(Double.valueOf(totalFee) * 0.01);
+            AbpDeductionRecords deductionRecords = new AbpDeductionRecords();
+            deductionRecords.setOtherAccountId(account.getId());
+            deductionRecords.setOperType(1);
+            deductionRecords.setMoney(new BigDecimal(tf));
+            deductionRecords.setPayStatus(1);
+            deductionRecords.setRemark("欠费补缴");
+            deductionRecords.setEmployeeId(depositCard);
+            deductionRecords.setTenantId(TENANTID);
+            deductionRecords.setCompanyId(MONECOMPANYID);
+            deductionRecords.setUserId(MONEUSERID);
+            deductionRecords.setCardNo(account.getCardNo());
+            deductionRecords.setBeginMoney(account.getWallet());
+            deductionRecords.setEndMoney(fee);
+            deductionRecords.setPayFrom(1);
+            deductionRecords.setInTime(new Date());
+            abpDeductionRecordsMapper.insetOne(deductionRecords);
+        }
     }
 
     @Override
@@ -544,7 +546,7 @@ public class PublicBasisServiceImpl implements PublicBasisService {
             }
             String[] guids=query.getGuid().split(",");
             for(int i=0;i<guids.length;i++){
-                updateOrder(guids[i],new BigDecimal(tf) );
+                updateOrder(guids[i],new BigDecimal(tf) ,4);
             }
 
             deductionRecords.setMoney(new BigDecimal(tf));
@@ -592,24 +594,26 @@ public class PublicBasisServiceImpl implements PublicBasisService {
     }
 
 
-    public void updateOrder(String guid,BigDecimal money){
+    public void updateOrder(String guid,BigDecimal money,Integer payFrom){
         //取系统配置信息
         AbpWeixinConfig config=JSONObject.parseObject(redisTemplate.opsForValue().get("config").toString(),AbpWeixinConfig.class);
 
         log.info("更新订单信息：{}",guid);
         AbpBusinessDetail businessDetail=abpBusinessDetailMapper.getByGuid(guid);
-        businessDetail.setStatus(4);
-        businessDetail.setElectronicOrderid(businessDetail.getId());
-        businessDetail.setRepayment(money);
-        businessDetail.setCarRepaymentTime(new Date());
-        businessDetail.setIsEscapePay(1);
-        businessDetail.setEscapePayStatus(4);
-        businessDetail.setEscapeCardNo("0");
-        businessDetail.setEscapeDeviceCode("weixinclient");
-        businessDetail.setPaymentType(3);
-        businessDetail.setEscapeOperaId(config.getRecoverMoneny());
-        businessDetail.setCarPayTime(new Date());
-        abpBusinessDetailMapper.updateByPrimaryKey(businessDetail);
+        if(businessDetail!=null) {
+            businessDetail.setStatus(4);
+            businessDetail.setElectronicOrderid(businessDetail.getId());
+            businessDetail.setRepayment(money);
+            businessDetail.setCarRepaymentTime(new Date());
+            businessDetail.setIsEscapePay(1);
+            businessDetail.setEscapePayStatus(payFrom);
+            businessDetail.setEscapeCardNo("0");
+            businessDetail.setEscapeDeviceCode("weixinclient");
+            businessDetail.setPaymentType(3);
+            businessDetail.setEscapeOperaId(config.getRecoverMoneny());
+            businessDetail.setCarPayTime(new Date());
+            abpBusinessDetailMapper.updateByPrimaryKey(businessDetail);
+        }
     }
     /**
      * 添加历史记录

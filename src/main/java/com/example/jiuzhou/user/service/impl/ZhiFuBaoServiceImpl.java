@@ -245,7 +245,7 @@ public class ZhiFuBaoServiceImpl implements ZhiFuBaoService {
                 if(zfbOrders.getPayFrom()==2) {
                     if (zfbOrders.getType() == 4 && StringUtils.isNotEmpty(zfbOrders.getGuid())) {
                         log.info("处理在线补缴");
-                        publicBasisService.payment(zfbOrders.getTotal_amount().multiply(new BigDecimal(100)).intValue(), zfbOrders.getGuid(), config.getDepositCard(), zfbOrders.getUid(), zfbOrders.getFee());
+                        publicBasisService.payment(zfbOrders.getTotal_amount().multiply(new BigDecimal(100)).intValue(), zfbOrders.getGuid(), config.getDepositCard(), zfbOrders.getUid(), zfbOrders.getFee(),6);
                     }
                     if (zfbOrders.getType() == 5) {
                         log.info("账号充值");

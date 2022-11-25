@@ -80,8 +80,9 @@ public interface PublicBasisService {
      * @param depositCard
      * @param uid
      * @param fee
+     * @param payFrom 3微信 4账户 6支付宝
      */
-    void payment(Integer totalFee,String guid,Integer depositCard,String uid,BigDecimal fee);
+    void payment(Integer totalFee,String guid,Integer depositCard,String uid,BigDecimal fee,Integer payFrom);
 
     /**
      * 自主结单
