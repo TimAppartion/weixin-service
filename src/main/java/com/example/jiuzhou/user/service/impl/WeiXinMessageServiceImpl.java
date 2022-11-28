@@ -3,10 +3,13 @@ package com.example.jiuzhou.user.service.impl;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.example.jiuzhou.common.utils.DateTimeUtils;
+import com.example.jiuzhou.common.utils.DateUtils;
 import com.example.jiuzhou.common.utils.Result;
 import com.example.jiuzhou.user.mapper.AbpSettingsMapper;
+import com.example.jiuzhou.user.mapper.TUserMapper;
 import com.example.jiuzhou.user.model.AbpSettings;
 import com.example.jiuzhou.user.model.AbpWeixinConfig;
+import com.example.jiuzhou.user.model.TUser;
 import com.example.jiuzhou.user.query.WeiXinMessageQuery;
 import com.example.jiuzhou.user.service.WeiXinMessageService;
 import com.jfinal.kit.Prop;
@@ -37,8 +40,12 @@ public class WeiXinMessageServiceImpl implements WeiXinMessageService {
     @Resource
     private AbpSettingsMapper abpSettingsMapper;
 
+    @Resource
+    private TUserMapper tUserMapper;
+
     @Override
     public Result<?> SendParkPay(WeiXinMessageQuery query) {
+        log.info("SendParkPay  query:{}",query);
         AbpWeixinConfig config= JSONObject.parseObject(redisTemplate.opsForValue().get("config").toString(),AbpWeixinConfig.class);
         AbpSettings settings=abpSettingsMapper.getByName("SendMsgOrder",TENANTID);
 
@@ -66,13 +73,13 @@ public class WeiXinMessageServiceImpl implements WeiXinMessageService {
         ac.setEncodingAesKey(config.getEncodingAESKey());
         ApiConfigKit.setThreadLocalApiConfig(ac);
 
-
-        String json = TemplateData.New().setTouser(query.getOpenId())
+        TUser tUser=tUserMapper.getByCarNumber(query.getCarNumber());
+        String json = TemplateData.New().setTouser(tUser.getOpenId())
                 .setTemplate_id(settings.getValue())
                 .setTopcolor("#743A3A").setUrl(PropKit.get("domain_h5") + "pages/record/record").add("first", "停车缴费成功通知。", "#743A3A")
                 .add("keyword1", query.getCarNumber(), "#0000FF").add("keyword2", query.getParkName() , "#0000FF")
                 .add("keyword3", query.getCarInTime(), "#0000FF").add("keyword4", query.getCarOutTime(), "#0000FF")
-                .add("keyword5", DateTimeUtils.getTimeDifference(query.getCarInTime(), query.getCarOutTime()), "#0000FF")
+                .add("keyword5", DateUtils.getGabTimDes(query.getCarInTime(), query.getCarOutTime()), "#0000FF")
                 .add("remark", "消费金额:"+query.getRemake()+ "元,"+ config.getAppName() + "谢谢您的信任，祝生活愉快", "#008000")
                 .build();
         ApiResult result = TemplateMsgApi.send(json);
@@ -81,8 +88,9 @@ public class WeiXinMessageServiceImpl implements WeiXinMessageService {
 
     @Override
     public Result<?> SendInPark(WeiXinMessageQuery query) {
+        log.info("SendInPark  query:{}",query);
         AbpWeixinConfig config= JSONObject.parseObject(redisTemplate.opsForValue().get("config").toString(),AbpWeixinConfig.class);
-        AbpSettings settings=abpSettingsMapper.getByName("SendInPark",TENANTID);
+        AbpSettings settings=abpSettingsMapper.getByName("SendMsgStopCar",TENANTID);
 
         ApiConfig ac = new ApiConfig();
         // 配置微信 API 相关常量
@@ -91,7 +99,7 @@ public class WeiXinMessageServiceImpl implements WeiXinMessageService {
         try {
             String Str = HttpUtils.get(GetPageAccessTokenUrl);
             JSONObject jsonObject = JSON.parseObject(Str);
-            System.out.println("返回信息"+jsonObject);
+            log.info("返回信息：{}",jsonObject);
             ac.setToken( String.valueOf(jsonObject.get("access_token")));
         }catch (Exception e){
             throw new RuntimeException("获取access_token失败");
@@ -106,10 +114,10 @@ public class WeiXinMessageServiceImpl implements WeiXinMessageService {
         ac.setEncryptMessage(PropKit.getBoolean("encryptMessage", false));
         ac.setEncodingAesKey(config.getEncodingAESKey());
         ApiConfigKit.setThreadLocalApiConfig(ac);
-
+        TUser tUser=tUserMapper.getByCarNumber(query.getCarNumber());
 //        SimpleDateFormat sdf = new SimpleDateFormat("yyyy年MM月dd日  HH:mm:ss");
 //        String time = sdf.format(new Date());
-        String json = TemplateData.New().setTouser(query.getOpenId())
+        String json = TemplateData.New().setTouser(tUser.getOpenId())
                 .setTemplate_id(settings.getValue())
                 .setTopcolor("#743A3A").setUrl(PropKit.get("domain_h5") + "pages/record/record").add("first", "您好，您的爱车"+query.getCarNumber()+"已驶入停车位。", "#743A3A")
                 .add("keyword1", query.getCarNumber(), "#0000FF")
@@ -119,14 +127,15 @@ public class WeiXinMessageServiceImpl implements WeiXinMessageService {
                 .build();
 
         ApiResult result = TemplateMsgApi.send(json);
+        log.info("SendInPark  result:{}",result);
         return Result.success(result);
     }
 
     @Override
     public Result<?> SendOutPark(WeiXinMessageQuery query) {
+        log.info("sendOutPark  query:{}",query);
         AbpWeixinConfig config= JSONObject.parseObject(redisTemplate.opsForValue().get("config").toString(),AbpWeixinConfig.class);
-        AbpSettings settings=abpSettingsMapper.getByName("SendOutPark",TENANTID);
-
+        AbpSettings settings=abpSettingsMapper.getByName("SendMsgOrderOut",TENANTID);
         ApiConfig ac = new ApiConfig();
         // 配置微信 API 相关常量
 
@@ -135,7 +144,7 @@ public class WeiXinMessageServiceImpl implements WeiXinMessageService {
         try {
             String Str = HttpUtils.get(GetPageAccessTokenUrl);
             JSONObject jsonObject = JSON.parseObject(Str);
-            System.out.println("返回信息"+jsonObject);
+            log.info("返回信息：{}",jsonObject);
             ac.setToken( String.valueOf(jsonObject.get("access_token")));
         }catch (Exception e){
             throw new RuntimeException("获取access_token失败");
@@ -150,20 +159,19 @@ public class WeiXinMessageServiceImpl implements WeiXinMessageService {
         ac.setEncryptMessage(PropKit.getBoolean("encryptMessage", false));
         ac.setEncodingAesKey(config.getEncodingAESKey());
         ApiConfigKit.setThreadLocalApiConfig(ac);
-
-//        SimpleDateFormat sdf = new SimpleDateFormat("yyyy年MM月dd日  HH:mm:ss");
-//        String time = sdf.format(new Date());
-        String json = TemplateData.New().setTouser(query.getOpenId())
+        TUser tUser=tUserMapper.getByCarNumber(query.getCarNumber());
+        String json = TemplateData.New().setTouser(tUser.getOpenId())
                 .setTemplate_id(settings.getValue())
                 .setTopcolor("#743A3A").setUrl(PropKit.get("domain_h5") + "pages/record/record").add("first", "您好，您的车辆已驶出"+query.getParkName()+"，祝您一路顺风。", "#743A3A")
                 .add("keyword1", query.getCarNumber(), "#0000FF")
                 .add("keyword2", query.getParkName() , "#0000FF")
                 .add("keyword3", query.getCarInTime(), "#0000FF")
                 .add("keyword4", query.getCarOutTime(), "#0000FF")
-                .add("keyword5", DateTimeUtils.getTimeDifference(query.getCarInTime(),query.getCarOutTime()), "#0000FF")
+                .add("keyword5", DateUtils.getGabTimDes(query.getCarInTime(),query.getCarOutTime()), "#0000FF")
                 .add("remark", config.getAppName()+ "谢谢您的信任，祝生活愉快", "#008000")
                 .build();
         ApiResult result = TemplateMsgApi.send(json);
+        log.info("SendOutPark result:{}",result);
         return Result.success(result);
     }
 }

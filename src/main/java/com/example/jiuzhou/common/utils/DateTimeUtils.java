@@ -69,4 +69,28 @@ public class DateTimeUtils  {
         }
         return "0秒";
     }
+
+    public static String getTimeDifference3(String startTime,String endTime){
+        SimpleDateFormat df=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        if(startTime==null){
+            startTime=(df.format(new Date()));
+        }
+        if(endTime==null){
+            endTime=(df.format(new Date()));
+        }
+        try{
+            Date start=AbDateUtil.getDateByFormat(startTime, AbDateUtil.dateFormatYMDHM2);
+            Date end=df.parse(endTime);
+            long difference=end.getTime()-start.getTime();
+            long day=difference/(24*60*60*1000);
+            long hour=difference/(60*60*1000)-day*24;
+            long min=difference/(60*1000)-day*24*60-hour*60;
+            long s=difference/1000-day*24*60*60-hour*60*60-min*60;
+//            return day!=0?(day+"天"+hour+"小时"+min+"分"+s+"秒"):(hour!=0?hour+"小时"+min+"分"+s+"秒":(min!=0?min+"分"+s+"秒":s+"秒"));
+            return day!=0?(day+"天"+hour+"小时"+min+"分"):(hour!=0?hour+"小时"+min+"分":(min!=0?min+"分":"0分"));
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return "0秒";
+    }
 }

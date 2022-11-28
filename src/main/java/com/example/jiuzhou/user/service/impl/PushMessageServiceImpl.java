@@ -74,6 +74,7 @@ public class PushMessageServiceImpl implements PushMessageService {
         AbpWeixinConfig config= JSONObject.parseObject(redisTemplate.opsForValue().get("config").toString(),AbpWeixinConfig.class);
         AbpSettings settings=settingsMapper.getByName("SendMsgOrder",TENANTID);
 
+        log.info("支付接口:{}",settings);
 
         ApiConfig ac = new ApiConfig();
         // 配置微信 API 相关常量
@@ -99,6 +100,7 @@ public class PushMessageServiceImpl implements PushMessageService {
                 .add("remark", config.getAppName()+ "谢谢您的信任，祝生活愉快", "#008000")
                 .build();
         ApiResult result = TemplateMsgApi.send(json);
+        log.info("sendMsgOrder:{}",result);
         return Result.success(result);
     }
 
