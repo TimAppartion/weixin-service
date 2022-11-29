@@ -5,14 +5,18 @@ import com.example.jiuzhou.common.Enum.ResultEnum;
 import com.example.jiuzhou.common.utils.Result;
 import com.example.jiuzhou.common.utils.SubMailUtils;
 import com.example.jiuzhou.user.mapper.AbpWeixinConfigMapper;
+import com.example.jiuzhou.user.mapper.AbpWeixinSendMsgModelsMapper;
 import com.example.jiuzhou.user.mapper.TUserMapper;
 import com.example.jiuzhou.user.model.AbpWeixinConfig;
 
+import com.example.jiuzhou.user.model.AbpWeixinSendMsgModels;
 import com.example.jiuzhou.user.query.OauthQuery;
+import com.example.jiuzhou.user.service.WeiXinMessageService;
 import com.example.jiuzhou.user.service.WeiXinOauthService;
 import com.example.jiuzhou.user.service.ZhiFuBaoService;
 import com.jfinal.kit.Prop;
 import com.jfinal.kit.PropKit;
+import com.jfinal.weixin.sdk.kit.PaymentKit;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import lombok.extern.slf4j.Slf4j;
@@ -28,9 +32,13 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.security.MessageDigest;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RestController
@@ -49,6 +57,12 @@ public class OauthController {
     private TUserMapper tUserMapper;
     @Resource
     private AbpWeixinConfigMapper abpWeixinConfigMapper;
+    @Resource
+    private WeiXinMessageService weiXinMessageService;
+
+    @Resource
+    private AbpWeixinSendMsgModelsMapper abpWeixinSendMsgModelsMapper;
+
 
     private static final Prop prop = PropKit.use("weixin.properties");
     private static Integer TENANTID=Integer.valueOf(prop.get("tenantId"));
@@ -64,6 +78,8 @@ public class OauthController {
         criteria.andEqualTo("TenantId", 1);
         AbpWeixinConfig config = abpWeixinConfigMapper.selectByExample(example).get(0);
         redisTemplate.opsForValue().set("config",JSONObject.toJSONString(config));
+        redisTemplate.opsForValue().set("companyId",abpWeixinConfigMapper.getIdByTenantId(config.getTenantId()));
+        weiXinMessageService.getWeiXinToken();
         log.info("————————————系统初始化添加信息进缓存结束——————————————");
 //        AbpWeixinConfig config1=JSONObject.parseObject(redisTemplate.opsForValue().get("config").toString(),AbpWeixinConfig.class);
     }
@@ -153,24 +169,54 @@ public class OauthController {
      * @throws IOException
      */
     @RequestMapping("/msg")
-    public String callBack(HttpServletResponse response, HttpServletRequest request, String signature, String timestamp, String nonce, String echostr) throws IOException {
-        try {
-            String[] arr = new String[]{TOKEN, timestamp, nonce};
-            Arrays.sort(arr);
-            StringBuilder sb = new StringBuilder();
-            for (int i = 0; i < arr.length; i++) {
-                sb.append(arr[i]);
+    public void callBack(HttpServletResponse response, HttpServletRequest request, String signature, String timestamp, String nonce, String echostr) throws IOException {
+//        try {
+//            String[] arr = new String[]{TOKEN, timestamp, nonce};
+//            Arrays.sort(arr);
+//            StringBuilder sb = new StringBuilder();
+//            for (int i = 0; i < arr.length; i++) {
+//                sb.append(arr[i]);
+//            }
+//            MessageDigest messageDigest = MessageDigest.getInstance("SHA1");
+//            messageDigest.update(sb.toString().getBytes());
+//            String sign = getFormattedText(messageDigest.digest());
+//            if (sign.equals(signature)) {
+//                return echostr;
+//            }
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//        return null;
+
+            log.info("接收参数：request:{},requestMap:{}",request.toString(),request.getInputStream().toString());
+            request.setCharacterEncoding("utf8");
+            response.setCharacterEncoding("utf8");
+            // 处理消息和事件推送
+            Map<String, String> requestMap = PaymentKit.xmlToMap(request.getInputStream().toString());
+            System.out.println(requestMap);
+            Example example = new Example(AbpWeixinConfig.class);
+            Example.Criteria criteria = example.createCriteria();
+            criteria.andEqualTo("TenantId", TENANTID);
+            criteria.andEqualTo("IsActive",1);
+            List<AbpWeixinSendMsgModels> list=abpWeixinSendMsgModelsMapper.selectByExample(example);
+            Map<String ,String > msgMap=list.stream().collect(Collectors.toMap(AbpWeixinSendMsgModels::getKey,AbpWeixinSendMsgModels::getMsg));
+            if(msgMap.get(requestMap.get("Content"))!=null){
+                String toUser=requestMap.get("ToUserName");
+                String FromUserName =requestMap.get("FromUserName");
+                requestMap.put("Content",msgMap.get(requestMap.get("Content")));
+                requestMap.put("ToUserName",FromUserName);
+                requestMap.put("FromUserName",toUser);
+            }else{
+
             }
-            MessageDigest messageDigest = MessageDigest.getInstance("SHA1");
-            messageDigest.update(sb.toString().getBytes());
-            String sign = getFormattedText(messageDigest.digest());
-            if (sign.equals(signature)) {
-                return echostr;
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
+
+            // 准备回复的数据包
+            String respXml =PaymentKit.toXml(requestMap);
+            log.info("准备返回的消息:{}",respXml);
+            PrintWriter out = response.getWriter();
+            out.print(respXml);
+            out.flush();
+            out.close();
     }
 
     private static String getFormattedText(byte[] bytes) {
