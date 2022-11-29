@@ -28,9 +28,10 @@ public interface PushMessageService {
      * @param plateNumber
      * @param berthNumber
      * @param stopTime
+     * @param carInTime
      * @return
      */
-    Result<?> sendMsgOrder(String openId, BigDecimal money, String plateNumber, String berthNumber, String stopTime);
+    Result<?> sendMsgOrder(String openId, BigDecimal money, String plateNumber, String berthNumber, String stopTime,String carInTime);
 
     /**
      * 微信支付后消息推送

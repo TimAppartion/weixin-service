@@ -13,6 +13,7 @@ import com.example.jiuzhou.user.model.fee.RateModel;
 import com.example.jiuzhou.user.model.fee.Rates;
 import com.example.jiuzhou.user.query.ArrearageQuery;
 import com.example.jiuzhou.user.service.HomePageService;
+import com.example.jiuzhou.user.service.WeiXinMessageService;
 import com.example.jiuzhou.user.view.ArrearageListView;
 import com.example.jiuzhou.user.view.ParkOrderView;
 import com.example.jiuzhou.user.view.QueryOrderView;
@@ -48,6 +49,8 @@ public class HomePageServiceImpl implements HomePageService {
     private TUserMapper tUserMapper;
     @Resource
     private AbpRatesMapper abpRatesMapper;
+    @Resource
+    private WeiXinMessageService weiXinMessageService;
 
     @Override
     public Result<?> onlineCar(String uid) {
@@ -64,7 +67,7 @@ public class HomePageServiceImpl implements HomePageService {
 
                 rates.rateMode = JSONObject.parseObject(abpRates.getRatePDA(),RateModel.class);
 
-                order.setCarInTime(AbDateUtil.getDateByCst(order.getCarInTime().toString(), AbDateUtil.dateFormatYMDHM2));
+
                 calModel = RateCalculate.ProcessRateCalculate(
                        order.getCarInTime(), new Date(),
                         2, order.getPlateNumber(), rates, 1, new AbpMonthlyCars());
@@ -73,10 +76,11 @@ public class HomePageServiceImpl implements HomePageService {
                 QueryOrderView orderView =berthsecsMapper.queryOrder(berthsecId);
                 map.put("count",orderView.getCount());
                 map.put("orderCount",orderView.getOrderCount());
-                order.setCarStopTime(DateTimeUtils.getTimeDifference(order.getCarInTime().toString(),null));
+                SimpleDateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                order.setCarStopTime(DateUtils.getGabTimDes(sdf.format(order.getCarInTime()),sdf.format(new Date())));
 
 
-                DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+//                DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
                 try {
                     double diff = (new Date().getTime() - order.getCarInTime().getTime()) * 0.001;
                     map.put("Surplus",diff);
@@ -99,7 +103,7 @@ public class HomePageServiceImpl implements HomePageService {
 
     @Override
     public Result<?> getWexSDK(String url) {
-        String accessToken = getAccessToken();
+        String accessToken = weiXinMessageService.getWeiXinToken().getData().toString();
         String jsapi_ticket  = getTicket(accessToken);
         if(accessToken.equals("error")){
             return Result.error("获取accessToken失败");
@@ -143,27 +147,22 @@ public class HomePageServiceImpl implements HomePageService {
         }
     }
 
-    public String getAccessToken(){
-        //取系统配置信息
-        AbpWeixinConfig config= JSONObject.parseObject(redisTemplate.opsForValue().get("config").toString(),AbpWeixinConfig.class);
-
-        String access_token=null;
-        String appId=config.getAppId();
-        String appSecret=config.getAppSecret();
-        String GetPageAccessTokenUrl = "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid="+appId+"&secret="+appSecret;
-
-        try{
-            String Str = HttpUtils.get(GetPageAccessTokenUrl);
-            JSONObject jsonObject = JSON.parseObject(Str);
-            log.info("获取微信token返回信息:{}",jsonObject);
-            access_token=String.valueOf(jsonObject.get("access_token"));
-        }catch (Exception e){
-            e.printStackTrace();
-            return "error";
-        }
-
-        return access_token;
-    }
+//    public String getAccessToken(){
+//        //取系统配置信息
+//        AbpWeixinConfig config= JSONObject.parseObject(redisTemplate.opsForValue().get("config").toString(),AbpWeixinConfig.class);
+//
+//        String access_token=null;
+//        String appId=config.getAppId();
+//        String appSecret=config.getAppSecret();
+//        try{
+//            access_token=String.valueOf(weiXinMessageService.getWeiXinToken().getData().toString());
+//        }catch (Exception e){
+//            e.printStackTrace();
+//            return "error";
+//        }
+//
+//        return access_token;
+//    }
 
     public String getTicket(String accessToken){
         String ticket = "";

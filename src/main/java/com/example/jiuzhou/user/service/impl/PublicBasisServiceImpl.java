@@ -257,6 +257,7 @@ public class PublicBasisServiceImpl implements PublicBasisService {
                 order.setTenantId(TENANTID);
                 TUser tUser=tUserMapper.getByOpenId(order.getOpenId());
                 order.setUid(tUser.getUid());
+                order.setCompanyId(Integer.valueOf(redisTemplate.opsForValue().get("companyId").toString()));
                 log.info("新增订单参数:{}",order);
                 weixinordersMapper.insertOne(order);
 
@@ -272,7 +273,7 @@ public class PublicBasisServiceImpl implements PublicBasisService {
 
 
                 if(courseId == 4 && StringUtils.isNotEmpty(guid)){//处理在线补缴
-                    this.payment(order.getTotal_fee(),guid,config.getDepositCard(),order.getUid(),fee,4);
+                    this.payment(order.getTotal_fee(),guid,config.getDepositCard(),order.getUid(),fee,3);
                 }
                 if(courseId == 5){//账号充值
                     log.info("账号充值");
@@ -581,7 +582,8 @@ public class PublicBasisServiceImpl implements PublicBasisService {
     @Override
     public Result<?> saveOnlineCar(SaveOnlineCarQuery query) {
         AbpBusinessDetail businessDetail=abpBusinessDetailMapper.getByGuid(query.getGuid());
-        return Result.success(pushMessageService.sendMsgOrder(query.getOpenId(),businessDetail.getMoney(),businessDetail.getPlateNumber(),businessDetail.getBerthNumber(),StopTimes(businessDetail.getStopTime())));
+        SimpleDateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        return Result.success(pushMessageService.sendMsgOrder(query.getOpenId(),businessDetail.getMoney(),businessDetail.getPlateNumber(),businessDetail.getBerthNumber(),StopTimes(businessDetail.getStopTime()),sdf.format(businessDetail.getCarInTime())));
 
     }
 
@@ -774,6 +776,7 @@ public class PublicBasisServiceImpl implements PublicBasisService {
                 return Result.error(ResultEnum.ERROR,"为查询到用户信息",resultParams);
             }
             order.setUid(tUser.getUid());
+            order.setCompanyId(Integer.valueOf(redisTemplate.opsForValue().get("companyId").toString()));
             weixinordersMapper.insertOne(order);
         }
 
@@ -807,6 +810,7 @@ public class PublicBasisServiceImpl implements PublicBasisService {
         order.setTrade_type(resultparams.get("trade_type"));
         order.setBank_type(resultparams.get("bank_type"));
         order.setTransaction_id(resultparams.get("transaction_id"));
+        order.setTenantId(TENANTID);
 
         String attach = JsonKit.toJson(new PayAttach(resultparams.get("out_trade_no"),query.getPayType(), 3, query.getGuid())) + "|" + query.getPayType();
         order.setAttach(attach);
@@ -824,6 +828,7 @@ public class PublicBasisServiceImpl implements PublicBasisService {
                 return Result.error(ResultEnum.ERROR,"为查询到用户信息",resultparams);
             }
             order.setUid(tUser.getUid());
+            order.setCompanyId(Integer.valueOf(redisTemplate.opsForValue().get("companyId").toString()));
             weixinordersMapper.insertOne(order);
         }
 

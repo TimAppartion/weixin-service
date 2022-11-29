@@ -30,4 +30,10 @@ public interface WeiXinMessageService {
      * @return
      */
     Result<?> SendOutPark(WeiXinMessageQuery query);
+
+    /**
+     * 获取微信token 过期自动替换为新的
+     * @return
+     */
+    Result<?> getWeiXinToken();
 }

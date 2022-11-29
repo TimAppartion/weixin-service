@@ -6,6 +6,7 @@ import com.example.jiuzhou.user.mapper.AbpSettingsMapper;
 import com.example.jiuzhou.user.model.AbpSettings;
 import com.example.jiuzhou.user.model.AbpWeixinConfig;
 import com.example.jiuzhou.user.service.PushMessageService;
+import com.example.jiuzhou.user.service.WeiXinMessageService;
 import com.jfinal.kit.Prop;
 import com.jfinal.kit.PropKit;
 import com.jfinal.weixin.sdk.api.*;
@@ -28,11 +29,14 @@ import java.util.Date;
 public class PushMessageServiceImpl implements PushMessageService {
     private static final Prop prop = PropKit.use("weixin.properties");
     private static Integer TENANTID=Integer.valueOf(prop.get("tenantId"));
+    private static String domain_h5=prop.get("domain_h5");
 
     @Resource
     private RedisTemplate redisTemplate;
     @Resource
     private AbpSettingsMapper settingsMapper;
+    @Resource
+    private WeiXinMessageService weiXinMessageService;
 
     @Override
     public void sendMonthlyCarRenewalMsg(String touser, BigDecimal Money, String CarNumber, boolean isRenewal) {
@@ -58,7 +62,7 @@ public class PushMessageServiceImpl implements PushMessageService {
         String time = sdf.format(new Date());
         String json = TemplateData.New().setTouser(touser)
                 .setTemplate_id(settings.getValue())
-                .setTopcolor("#743A3A").setUrl(PropKit.get("domain_h5") + "pages/Monthly")
+                .setTopcolor("#743A3A").setUrl(domain_h5 + "pages/Monthly")
                 .add("first", isRenewal ? "道路停车包月续费通知单。" : "道路停车包月成功通知单。", "#743A3A").add("product", CarNumber + "包月服务", "#0000FF")
                 .add("price", String.valueOf(Money), "#0000FF").add("time", time, "#0000FF")
                 .add("remark", config.getAppName() + "感谢您对我们的信任，我们将为您提供更优质的服务。",
@@ -70,15 +74,15 @@ public class PushMessageServiceImpl implements PushMessageService {
     }
 
     @Override
-    public Result<?> sendMsgOrder(String openId, BigDecimal money, String plateNumber, String berthNumber, String stopTime) {
+    public Result<?> sendMsgOrder(String openId, BigDecimal money, String plateNumber, String berthNumber, String stopTime,String carInTime) {
         AbpWeixinConfig config= JSONObject.parseObject(redisTemplate.opsForValue().get("config").toString(),AbpWeixinConfig.class);
         AbpSettings settings=settingsMapper.getByName("SendMsgOrder",TENANTID);
 
-        log.info("支付接口:{}",settings);
+        log.info("sendMsgOrder:{}",settings);
 
         ApiConfig ac = new ApiConfig();
         // 配置微信 API 相关常量
-        ac.setToken(config.getToken());
+        ac.setToken(weiXinMessageService.getWeiXinToken().getData().toString());
         ac.setAppId(config.getAppId());
         ac.setAppSecret(config.getAppSecret());
         /**
@@ -89,15 +93,15 @@ public class PushMessageServiceImpl implements PushMessageService {
         ac.setEncodingAesKey(config.getEncodingAESKey());
         ApiConfigKit.setThreadLocalApiConfig(ac);
 
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy年MM月dd日  HH:mm:ss");
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd  HH:mm:ss");
         String time = sdf.format(new Date());
         String json = TemplateData.New().setTouser(openId)
                 .setTemplate_id(settings.getValue())
-                .setTopcolor("#743A3A").setUrl(PropKit.get("domain_h5") + "pages/record/record").add("first", "道路停车缴费通知单。", "#743A3A")
+                .setTopcolor("#743A3A").setUrl( domain_h5+ "pages/record/record").add("first", "道路停车缴费通知单。", "#743A3A")
                 .add("keyword1", plateNumber, "#0000FF").add("keyword2", berthNumber + "泊位", "#0000FF")
-                .add("keyword3", stopTime, "#0000FF").add("keyword4", money + "元", "#0000FF")
-                .add("keyword5", time, "#0000FF")
-                .add("remark", config.getAppName()+ "谢谢您的信任，祝生活愉快", "#008000")
+                .add("keyword3", carInTime , "#0000FF").add("keyword4", time, "#0000FF")
+                .add("keyword5", stopTime, "#0000FF")
+                .add("remark", "消费金额:"+money+ "元,"+ config.getAppName() + "谢谢您的信任，祝生活愉快", "#008000")
                 .build();
         ApiResult result = TemplateMsgApi.send(json);
         log.info("sendMsgOrder:{}",result);
@@ -111,7 +115,7 @@ public class PushMessageServiceImpl implements PushMessageService {
 
         ApiConfig ac = new ApiConfig();
         // 配置微信 API 相关常量
-        ac.setToken(config.getToken());
+        ac.setToken(weiXinMessageService.getWeiXinToken().getData().toString());
         ac.setAppId(config.getAppId());
         ac.setAppSecret(config.getAppSecret());
         /**
@@ -126,7 +130,7 @@ public class PushMessageServiceImpl implements PushMessageService {
         // String time = sdf.format(new Date());
         String json = TemplateData.New().setTouser(openId)
                 .setTemplate_id(settings.getValue())
-                .setTopcolor("#743A3A").setUrl(PropKit.get("domain_h5") + "pages/record/record")
+                .setTopcolor("#743A3A").setUrl(domain_h5 + "pages/record/record")
                 .add("first", "您好！感谢您的光临。您的爱车已经驶离停车场，停车计时已经停止。", "#743A3A").add("keyword1", tel, "#0000FF")
                 .add("keyword2", plateNumber, "#0000FF").add("keyword3", String.valueOf(carOutTime), "#0000FF")
                 .add("remark",
@@ -135,6 +139,7 @@ public class PushMessageServiceImpl implements PushMessageService {
                         "#008000")
                 .build();
         ApiResult result = TemplateMsgApi.send(json);
+        log.info("SendMsgOrderOut result:{}",result);
         return Result.success(result);
     }
 }

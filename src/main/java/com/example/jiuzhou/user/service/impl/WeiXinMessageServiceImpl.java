@@ -17,6 +17,7 @@ import com.jfinal.kit.PropKit;
 import com.jfinal.weixin.sdk.api.*;
 import com.jfinal.weixin.sdk.utils.HttpUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -33,7 +34,7 @@ import javax.annotation.Resource;
 public class WeiXinMessageServiceImpl implements WeiXinMessageService {
     private static final Prop prop = PropKit.use("weixin.properties");
     private static Integer TENANTID=Integer.valueOf(prop.get("tenantId"));
-
+    private static String domain_h5=prop.get("domain_h5");
     @Autowired
     private RedisTemplate redisTemplate;
 
@@ -46,24 +47,12 @@ public class WeiXinMessageServiceImpl implements WeiXinMessageService {
     @Override
     public Result<?> SendParkPay(WeiXinMessageQuery query) {
         log.info("SendParkPay  query:{}",query);
-        AbpWeixinConfig config= JSONObject.parseObject(redisTemplate.opsForValue().get("config").toString(),AbpWeixinConfig.class);
         AbpSettings settings=abpSettingsMapper.getByName("SendMsgOrder",TENANTID);
-
+        AbpWeixinConfig config= JSONObject.parseObject(redisTemplate.opsForValue().get("config").toString(),AbpWeixinConfig.class);
         //配置微信Api
         ApiConfig ac=new ApiConfig();
 
-        String appId = config.getAppId();
-        String appSecret = config.getAppSecret();
-        String GetPageAccessTokenUrl = "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid="+appId+"&secret="+appSecret;
-        ac.setAppId(appId);
-        ac.setAppSecret(appSecret);
-        try {
-            String Str = HttpUtils.get(GetPageAccessTokenUrl);
-            JSONObject jsonObject = JSON.parseObject(Str);
-            ac.setToken( String.valueOf(jsonObject.get("access_token")));
-        }catch (Exception e){
-            throw new RuntimeException("获取access_token失败");
-        }
+        ac.setToken(this.getWeiXinToken().getData().toString());
 
         /**
          * 是否对消息进行加密，对应于微信平台的消息加解密方式： 1：true进行加密且必须配置 encodingAesKey
@@ -76,7 +65,7 @@ public class WeiXinMessageServiceImpl implements WeiXinMessageService {
         TUser tUser=tUserMapper.getByCarNumber(query.getCarNumber());
         String json = TemplateData.New().setTouser(tUser.getOpenId())
                 .setTemplate_id(settings.getValue())
-                .setTopcolor("#743A3A").setUrl(PropKit.get("domain_h5") + "pages/record/record").add("first", "停车缴费成功通知。", "#743A3A")
+                .setTopcolor("#743A3A").setUrl(domain_h5 + "pages/record/record").add("first", "停车缴费成功通知。", "#743A3A")
                 .add("keyword1", query.getCarNumber(), "#0000FF").add("keyword2", query.getParkName() , "#0000FF")
                 .add("keyword3", query.getCarInTime(), "#0000FF").add("keyword4", query.getCarOutTime(), "#0000FF")
                 .add("keyword5", DateUtils.getGabTimDes(query.getCarInTime(), query.getCarOutTime()), "#0000FF")
@@ -94,16 +83,8 @@ public class WeiXinMessageServiceImpl implements WeiXinMessageService {
 
         ApiConfig ac = new ApiConfig();
         // 配置微信 API 相关常量
-        String GetPageAccessTokenUrl = "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid="+config.getAppId()+"&secret="+config.getAppSecret();
 
-        try {
-            String Str = HttpUtils.get(GetPageAccessTokenUrl);
-            JSONObject jsonObject = JSON.parseObject(Str);
-            log.info("返回信息：{}",jsonObject);
-            ac.setToken( String.valueOf(jsonObject.get("access_token")));
-        }catch (Exception e){
-            throw new RuntimeException("获取access_token失败");
-        }
+        ac.setToken(this.getWeiXinToken().getData().toString());
 
         ac.setAppId(config.getAppId());
         ac.setAppSecret(config.getAppSecret());
@@ -119,7 +100,7 @@ public class WeiXinMessageServiceImpl implements WeiXinMessageService {
 //        String time = sdf.format(new Date());
         String json = TemplateData.New().setTouser(tUser.getOpenId())
                 .setTemplate_id(settings.getValue())
-                .setTopcolor("#743A3A").setUrl(PropKit.get("domain_h5") + "pages/record/record").add("first", "您好，您的爱车"+query.getCarNumber()+"已驶入停车位。", "#743A3A")
+                .setTopcolor("#743A3A").setUrl(domain_h5 + "pages/index/index").add("first", "您好，您的爱车"+query.getCarNumber()+"已驶入停车位。", "#743A3A")
                 .add("keyword1", query.getCarNumber(), "#0000FF")
                 .add("keyword2", query.getParkName() , "#0000FF")
                 .add("keyword3", query.getCarInTime(), "#0000FF")
@@ -139,16 +120,7 @@ public class WeiXinMessageServiceImpl implements WeiXinMessageService {
         ApiConfig ac = new ApiConfig();
         // 配置微信 API 相关常量
 
-        String GetPageAccessTokenUrl = "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid="+config.getAppId()+"&secret="+config.getAppSecret();
-
-        try {
-            String Str = HttpUtils.get(GetPageAccessTokenUrl);
-            JSONObject jsonObject = JSON.parseObject(Str);
-            log.info("返回信息：{}",jsonObject);
-            ac.setToken( String.valueOf(jsonObject.get("access_token")));
-        }catch (Exception e){
-            throw new RuntimeException("获取access_token失败");
-        }
+        ac.setToken(this.getWeiXinToken().getData().toString());
 
         ac.setAppId(config.getAppId());
         ac.setAppSecret(config.getAppSecret());
@@ -162,7 +134,7 @@ public class WeiXinMessageServiceImpl implements WeiXinMessageService {
         TUser tUser=tUserMapper.getByCarNumber(query.getCarNumber());
         String json = TemplateData.New().setTouser(tUser.getOpenId())
                 .setTemplate_id(settings.getValue())
-                .setTopcolor("#743A3A").setUrl(PropKit.get("domain_h5") + "pages/record/record").add("first", "您好，您的车辆已驶出"+query.getParkName()+"，祝您一路顺风。", "#743A3A")
+                .setTopcolor("#743A3A").setUrl(domain_h5 + "pages/record/record").add("first", "您好，您的车辆已驶出"+query.getParkName()+"，祝您一路顺风。", "#743A3A")
                 .add("keyword1", query.getCarNumber(), "#0000FF")
                 .add("keyword2", query.getParkName() , "#0000FF")
                 .add("keyword3", query.getCarInTime(), "#0000FF")
@@ -173,5 +145,27 @@ public class WeiXinMessageServiceImpl implements WeiXinMessageService {
         ApiResult result = TemplateMsgApi.send(json);
         log.info("SendOutPark result:{}",result);
         return Result.success(result);
+    }
+
+    @Override
+    public Result<?> getWeiXinToken() {
+        Object token = redisTemplate.opsForValue().get("WeiXinToken");
+        try {
+            if (token==null  ) {
+                AbpWeixinConfig config = JSONObject.parseObject(redisTemplate.opsForValue().get("config").toString(), AbpWeixinConfig.class);
+                String GetPageAccessTokenUrl = "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=" + config.getAppId() + "&secret=" + config.getAppSecret();
+                String str = HttpUtils.get(GetPageAccessTokenUrl);
+                log.info("微信获取token：{}",str);
+                JSONObject jsonObject = JSON.parseObject(str);
+
+                token = String.valueOf(jsonObject.get("access_token"));
+
+                redisTemplate.opsForValue().set("WeiXinToken", token,7100);
+            }
+        }catch (Exception e){
+            throw new RuntimeException("获取access_token失败");
+        }
+        return Result.success(token);
+
     }
 }

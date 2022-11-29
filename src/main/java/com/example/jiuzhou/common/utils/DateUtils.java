@@ -586,7 +586,7 @@ public class DateUtils {
      * 获取时间间隔
      */
     public static int getGabTime(String startTime, String endTime) {
-        long date1 = DateUtils.getMillByFormat(startTime,
+        long date1 = DateUtils.getMillByFormat(getCurrentDate(startTime),
                 DateUtils.dateFormatYMDHM2);
         long date2 = DateUtils.getMillByFormat(endTime,
                 DateUtils.dateFormatYMDHM2);
