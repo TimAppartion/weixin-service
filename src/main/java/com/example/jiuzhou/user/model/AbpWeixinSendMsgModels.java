@@ -21,8 +21,8 @@ public class AbpWeixinSendMsgModels {
     @Column(name = "Id")
     private Integer Id;
 
-    @Column(name = "Key")
-    private String Key;
+    @Column(name = "Crux")
+    private String Crux;
 
     @Column(name = "Msg")
     private String Msg;

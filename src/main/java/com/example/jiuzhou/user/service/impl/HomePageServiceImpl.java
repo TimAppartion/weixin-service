@@ -29,6 +29,7 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author Appartion
@@ -165,17 +166,24 @@ public class HomePageServiceImpl implements HomePageService {
 //    }
 
     public String getTicket(String accessToken){
-        String ticket = "";
-        String GetPageAccessTokenUrl = "https://api.weixin.qq.com/cgi-bin/ticket/getticket?access_token="+accessToken+"&type=jsapi";
-        try {
-            String Str = HttpUtils.get(GetPageAccessTokenUrl);
-            JSONObject jsonObject = JSON.parseObject(Str);
-            ticket = String.valueOf(jsonObject.get("ticket"));//获取ticket		}catch (Exception e){
-        }catch (Exception e){
-            e.printStackTrace();
-            return "error";
 
+        String GetPageAccessTokenUrl = "https://api.weixin.qq.com/cgi-bin/ticket/getticket?access_token="+accessToken+"&type=jsapi";
+        Object ticket=redisTemplate.opsForValue().get("ticket");
+        if(ticket==null){
+            try {
+                String Str = HttpUtils.get(GetPageAccessTokenUrl);
+                log.info("获取ticket：{}",Str);
+                JSONObject jsonObject = JSON.parseObject(Str);
+                ticket = String.valueOf(jsonObject.get("ticket"));//获取ticket
+                redisTemplate.opsForValue().set("ticket",ticket,7100, TimeUnit.SECONDS);
+
+            }catch (Exception e){
+                e.printStackTrace();
+                return "error";
+
+            }
         }
-        return ticket;
+
+        return ticket.toString();
     }
 }

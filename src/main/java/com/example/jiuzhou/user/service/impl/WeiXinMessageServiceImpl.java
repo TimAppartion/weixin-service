@@ -23,6 +23,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author Appartion
@@ -160,7 +161,7 @@ public class WeiXinMessageServiceImpl implements WeiXinMessageService {
 
                 token = String.valueOf(jsonObject.get("access_token"));
 
-                redisTemplate.opsForValue().set("WeiXinToken", token,7100);
+                redisTemplate.opsForValue().set("WeiXinToken", token,7100, TimeUnit.SECONDS);
             }
         }catch (Exception e){
             throw new RuntimeException("获取access_token失败");

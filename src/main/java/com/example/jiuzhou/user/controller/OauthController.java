@@ -5,10 +5,12 @@ import com.example.jiuzhou.common.Enum.ResultEnum;
 import com.example.jiuzhou.common.utils.Result;
 import com.example.jiuzhou.common.utils.SubMailUtils;
 import com.example.jiuzhou.user.mapper.AbpWeixinConfigMapper;
+import com.example.jiuzhou.user.mapper.AbpWeixinMsgMapper;
 import com.example.jiuzhou.user.mapper.AbpWeixinSendMsgModelsMapper;
 import com.example.jiuzhou.user.mapper.TUserMapper;
 import com.example.jiuzhou.user.model.AbpWeixinConfig;
 
+import com.example.jiuzhou.user.model.AbpWeixinMsg;
 import com.example.jiuzhou.user.model.AbpWeixinSendMsgModels;
 import com.example.jiuzhou.user.query.OauthQuery;
 import com.example.jiuzhou.user.service.WeiXinMessageService;
@@ -18,6 +20,9 @@ import com.jfinal.kit.Prop;
 import com.jfinal.kit.PropKit;
 import com.jfinal.weixin.sdk.kit.PaymentKit;
 import org.apache.commons.lang.StringUtils;
+import org.dom4j.Document;
+import org.dom4j.Element;
+import org.dom4j.io.SAXReader;
 import org.springframework.beans.factory.annotation.Autowired;
 import lombok.extern.slf4j.Slf4j;
 
@@ -32,11 +37,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintWriter;
 import java.security.MessageDigest;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -63,6 +67,8 @@ public class OauthController {
     @Resource
     private AbpWeixinSendMsgModelsMapper abpWeixinSendMsgModelsMapper;
 
+    @Resource
+    private AbpWeixinMsgMapper abpWeixinMsgMapper;
 
     private static final Prop prop = PropKit.use("weixin.properties");
     private static Integer TENANTID=Integer.valueOf(prop.get("tenantId"));
@@ -79,6 +85,7 @@ public class OauthController {
         AbpWeixinConfig config = abpWeixinConfigMapper.selectByExample(example).get(0);
         redisTemplate.opsForValue().set("config",JSONObject.toJSONString(config));
         redisTemplate.opsForValue().set("companyId",abpWeixinConfigMapper.getIdByTenantId(config.getTenantId()));
+        redisTemplate.delete("WeiXinToken");
         weiXinMessageService.getWeiXinToken();
         log.info("————————————系统初始化添加信息进缓存结束——————————————");
 //        AbpWeixinConfig config1=JSONObject.parseObject(redisTemplate.opsForValue().get("config").toString(),AbpWeixinConfig.class);
@@ -169,7 +176,7 @@ public class OauthController {
      * @throws IOException
      */
     @RequestMapping("/msg")
-    public void callBack(HttpServletResponse response, HttpServletRequest request, String signature, String timestamp, String nonce, String echostr) throws IOException {
+    public void msg(HttpServletResponse response, HttpServletRequest request, String signature, String timestamp, String nonce, String echostr) throws IOException {
 //        try {
 //            String[] arr = new String[]{TOKEN, timestamp, nonce};
 //            Arrays.sort(arr);
@@ -187,27 +194,32 @@ public class OauthController {
 //            e.printStackTrace();
 //        }
 //        return null;
-
+//    }
             log.info("接收参数：request:{},requestMap:{}",request.toString(),request.getInputStream().toString());
             request.setCharacterEncoding("utf8");
             response.setCharacterEncoding("utf8");
             // 处理消息和事件推送
-            Map<String, String> requestMap = PaymentKit.xmlToMap(request.getInputStream().toString());
-            System.out.println(requestMap);
-            Example example = new Example(AbpWeixinConfig.class);
+            Map<String, String> requestMap = parseRequest(request.getInputStream());
+            log.info("转换xml为map：{}",requestMap);
+            Example example = new Example(AbpWeixinSendMsgModels.class);
             Example.Criteria criteria = example.createCriteria();
             criteria.andEqualTo("TenantId", TENANTID);
             criteria.andEqualTo("IsActive",1);
             List<AbpWeixinSendMsgModels> list=abpWeixinSendMsgModelsMapper.selectByExample(example);
-            Map<String ,String > msgMap=list.stream().collect(Collectors.toMap(AbpWeixinSendMsgModels::getKey,AbpWeixinSendMsgModels::getMsg));
+            Map<String ,String > msgMap=list.stream().collect(Collectors.toMap(AbpWeixinSendMsgModels::getCrux,AbpWeixinSendMsgModels::getMsg));
+            String toUser=requestMap.get("ToUserName");
+            String FromUserName =requestMap.get("FromUserName");
+            requestMap.put("ToUserName",FromUserName);
+            requestMap.put("FromUserName",toUser);
             if(msgMap.get(requestMap.get("Content"))!=null){
-                String toUser=requestMap.get("ToUserName");
-                String FromUserName =requestMap.get("FromUserName");
                 requestMap.put("Content",msgMap.get(requestMap.get("Content")));
-                requestMap.put("ToUserName",FromUserName);
-                requestMap.put("FromUserName",toUser);
             }else{
-
+                AbpWeixinMsg msg= new AbpWeixinMsg();
+                msg.setMsg(requestMap.get("Content"));
+                msg.setCreationTime(new Date());
+                msg.setTenantId(TENANTID);
+                abpWeixinMsgMapper.insertOne(msg);
+                requestMap.put("Content",msgMap.get("-1"));
             }
 
             // 准备回复的数据包
@@ -218,6 +230,31 @@ public class OauthController {
             out.flush();
             out.close();
     }
+    /**
+     * 解析xml数据包
+     * @param is
+     * @return
+     */
+    public static Map<String, String> parseRequest(InputStream is) {
+        Map<String,String> map=new HashMap<>();
+        SAXReader reader = new SAXReader();
+        try {
+            //读取输入流，获取文档对象
+            Document document=reader.read(is);
+            //提交文档对象获取根节点
+            Element root=document.getRootElement();
+            //获取根节点的所有的子节点
+            List<Element>element=root.elements();
+            for(Element e:element){
+                map.put(e.getName(), e.getStringValue());
+            }
+        } catch (Exception e) {
+            // TODO: handle exception
+            e.printStackTrace();
+        }
+        return map;
+    }
+
 
     private static String getFormattedText(byte[] bytes) {
         int len = bytes.length;
