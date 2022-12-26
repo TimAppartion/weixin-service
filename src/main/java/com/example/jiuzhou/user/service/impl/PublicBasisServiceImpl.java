@@ -262,7 +262,7 @@ public class PublicBasisServiceImpl implements PublicBasisService {
                 weixinordersMapper.insertOne(order);
 
                 String guid = payAttach.getGuid();
-                Integer couponId = payAttach.getCouponId();
+                String couponId = payAttach.getCouponId();
                 //优惠前的总金额
                 BigDecimal fee=	payAttach.getFee();
 

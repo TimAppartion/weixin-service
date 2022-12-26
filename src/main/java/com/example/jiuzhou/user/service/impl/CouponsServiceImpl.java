@@ -25,7 +25,7 @@ public class CouponsServiceImpl implements CouponsService {
     }
 
     @Override
-    public Result<?> canUseCoupon(BigDecimal fee, String uid, Integer couponId) {
+    public Result<?> canUseCoupon(BigDecimal fee, String uid, String couponId) {
         CouponsView details= couponsDetailsMapper.getDetails(couponId);
         if(details!=null) {
             if (!uid.equals(details.getUid())) {
@@ -62,7 +62,7 @@ public class CouponsServiceImpl implements CouponsService {
     }
 
     @Override
-    public void useCoupon(Integer couponId, Integer status) {
+    public void useCoupon(String couponId, Integer status) {
         CouponsView details=couponsDetailsMapper.getDetails(couponId);
         CouponsDetails model=new CouponsDetails();
 

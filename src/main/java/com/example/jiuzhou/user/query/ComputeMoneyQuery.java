@@ -12,6 +12,6 @@ import java.math.BigDecimal;
 @Data
 public class ComputeMoneyQuery {
     private String uid;
-    private Integer couponId;
+    private String couponId;
     private BigDecimal fee;
 }

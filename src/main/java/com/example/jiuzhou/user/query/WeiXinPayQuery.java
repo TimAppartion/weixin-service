@@ -21,5 +21,5 @@ public class WeiXinPayQuery {
     private String monthlyType;
     private Integer month;
     private Boolean isMonthlyRenewal;
-    private Integer couponId;
+    private String couponId;
 }

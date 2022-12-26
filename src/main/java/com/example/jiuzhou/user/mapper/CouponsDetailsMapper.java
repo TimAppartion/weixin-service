@@ -13,6 +13,6 @@ public interface CouponsDetailsMapper extends Mapper<CouponsDetails> {
 
     List<CouponsView> getCouponsList(@Param("query") CouponsQuery query);
 
-    CouponsView getDetails(@Param("id")Integer id);
+    CouponsView getDetails(@Param("id")String id);
 
 }

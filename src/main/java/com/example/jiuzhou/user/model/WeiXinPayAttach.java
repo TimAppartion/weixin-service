@@ -20,7 +20,7 @@ public class WeiXinPayAttach {
     private String Id;
 
     @Column(name = "couponId")
-    private Integer couponId;
+    private String couponId;
 
     @Column(name = "orderId")
     private String orderId;

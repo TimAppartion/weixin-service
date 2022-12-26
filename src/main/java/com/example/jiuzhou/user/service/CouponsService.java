@@ -17,12 +17,12 @@ public interface CouponsService {
      * @param couponId
      * @return
      */
-    Result<?> canUseCoupon(BigDecimal fee, String uid, Integer couponId);
+    Result<?> canUseCoupon(BigDecimal fee, String uid, String couponId);
 
     /**
      * 使用优惠券
      * @param couponId
      * @param status
      */
-    void useCoupon(Integer couponId,Integer status);
+    void useCoupon(String couponId,Integer status);
 }
