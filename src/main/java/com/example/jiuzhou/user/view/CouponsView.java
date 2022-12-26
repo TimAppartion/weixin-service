@@ -9,7 +9,7 @@ import java.util.Date;
 
 @Data
 public class CouponsView {
-    private Integer Id;
+    private String Id;
     private Integer PlanId;
 
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")

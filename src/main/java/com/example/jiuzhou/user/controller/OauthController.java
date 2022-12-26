@@ -175,8 +175,8 @@ public class OauthController {
      * @return
      * @throws IOException
      */
-    @RequestMapping("/msg")
-    public void msg(HttpServletResponse response, HttpServletRequest request, String signature, String timestamp, String nonce, String echostr) throws IOException {
+//    @RequestMapping("/msg")
+//    public String callBack(HttpServletResponse response, HttpServletRequest request, String signature, String timestamp, String nonce, String echostr) throws IOException {
 //        try {
 //            String[] arr = new String[]{TOKEN, timestamp, nonce};
 //            Arrays.sort(arr);
@@ -195,6 +195,12 @@ public class OauthController {
 //        }
 //        return null;
 //    }
+
+
+
+    @RequestMapping("/msg")
+    public void msg(HttpServletResponse response, HttpServletRequest request, String signature, String timestamp, String nonce, String echostr) throws IOException {
+
             log.info("接收参数：request:{},requestMap:{}",request.toString(),request.getInputStream().toString());
             request.setCharacterEncoding("utf8");
             response.setCharacterEncoding("utf8");

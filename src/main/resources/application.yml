@@ -29,7 +29,7 @@ spring:
     active: prod
   datasource:
     driverClassName: com.microsoft.sqlserver.jdbc.SQLServerDriver
-    url: jdbc:sqlserver://123.60.44.222:1433;DatabaseName=F2V20Init
+    url: jdbc:sqlserver://121.36.209.245:1433;DatabaseName=F2V20Init1
     username: sa
     password: Fxintel123
     #Mysql
@@ -54,7 +54,7 @@ spring:
         min-idle: 0     #最小空闲连接
 jdbc:
   driverClass: com.microsoft.sqlserver.jdbc.SQLServerDriver
-  url: jdbc:sqlserver://123.60.44.222:1433;DatabaseName=F2V20Init
+  url: jdbc:sqlserver://121.36.209.245:1433;DatabaseName=F2V20Init1
   username: sa
   password: Fxintel123
 #  mysql
