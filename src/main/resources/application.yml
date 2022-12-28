@@ -66,7 +66,8 @@ jdbc:
 # 日志
 logging:
   config: classpath:logback.xml
-
+  level:
+    com.netflix.discovery.shared.resolver.aws.ConfigClusterResolver: WARN
 
 jackson:
   # 全局设置@JsonFormat的格式pattern
