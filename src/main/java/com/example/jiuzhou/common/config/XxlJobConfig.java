@@ -1,4 +1,6 @@
 package com.example.jiuzhou.common.config;
+import com.jfinal.kit.Prop;
+import com.jfinal.kit.PropKit;
 import com.xxl.job.core.executor.impl.XxlJobSpringExecutor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -12,30 +14,17 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class XxlJobConfig {
 
-
-    @Value("${xxl.job.admin.addresses:http://127.0.0.1:28080/xxl-job-admin}")
-    private String adminAddresses;
-
-    @Value("${xxl.job.accessToken:4df2a350}")
-    private String accessToken;
-
-    @Value("${xxl.job.executor.appname:jiuzhou}")
-    private String appname;
-
+    private static final Prop prop = PropKit.use("xxljob.properties");
+    private String adminAddresses=prop.get("addresses");
+    private String accessToken=prop.get("accessToken");
+    private String appName=prop.get("appName");
 //    @Value("${xxl.job.executor.address}")
     private String address;
-
 //    @Value("${xxl.job.executor.ip}")
     private String ip;
-
-    @Value("${xxl.job.executor.port:9989}")
-    private int port;
-
-    @Value("${xxl.job.executor.logpath:/Users/wojiushiwo/spring/my-xxl-job/logs/jobhandler}")
-    private String logPath;
-
-    @Value("${xxl.job.executor.logretentiondays:30}")
-    private int logRetentionDays;
+    private int port=Integer.parseInt(prop.get("port"));
+    private String logPath=prop.get("logPath");
+    private int logRetentionDays=Integer.parseInt(prop.get("logRetentionDays"));
 
 
 //    @Bean
@@ -43,7 +32,7 @@ public class XxlJobConfig {
 //
 //        XxlJobSpringExecutor xxlJobSpringExecutor = new XxlJobSpringExecutor();
 //        xxlJobSpringExecutor.setAdminAddresses(adminAddresses);
-//        xxlJobSpringExecutor.setAppname(appname);
+//        xxlJobSpringExecutor.setAppname(appName);
 //        xxlJobSpringExecutor.setAddress(address);
 //        xxlJobSpringExecutor.setIp(ip);
 //        xxlJobSpringExecutor.setPort(port);
