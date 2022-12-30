@@ -766,6 +766,7 @@ public class PublicBasisServiceImpl implements PublicBasisService {
         order.setCouresCount(0);
         order.setCouresId(query.getPay_type());
         order.setUrl("");
+        order.setTenantId(config.getTenantId());
 
         // 注意重复通知的情况，同一订单号可能收到多次通知，请注意一定先判断订单状态
         // 避免已经成功、关闭、退款的订单被再次更新
