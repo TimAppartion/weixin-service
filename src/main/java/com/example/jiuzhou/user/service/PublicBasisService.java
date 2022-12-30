@@ -1,6 +1,7 @@
 package com.example.jiuzhou.user.service;
 
 import com.example.jiuzhou.common.utils.Result;
+import com.example.jiuzhou.user.model.AbpWeixinConfig;
 import com.example.jiuzhou.user.query.*;
 
 import java.math.BigDecimal;
@@ -133,4 +134,11 @@ public interface PublicBasisService {
      * @return
      */
     Result<?> weiXinWriteOrder(WeiXinWriteOrderQuery query);
+
+    /**
+     * 读取配置
+     * @param tenantId
+     * @return
+     */
+    AbpWeixinConfig getConfigByTenantId(Integer tenantId);
 }

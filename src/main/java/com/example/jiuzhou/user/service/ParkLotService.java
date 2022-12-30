@@ -1,6 +1,7 @@
 package com.example.jiuzhou.user.service;
 
 import com.example.jiuzhou.common.utils.Result;
+import com.example.jiuzhou.user.query.ParkLotQrPayQuery;
 import com.example.jiuzhou.user.query.ParkLotQrQuery;
 
 /**
@@ -15,4 +16,12 @@ public interface ParkLotService {
      * @return
      */
     Result<?> parkLotQr (ParkLotQrQuery query);
+
+    /**
+     * 场内扫码支付下单接口
+     * https://pay.weixin.qq.com/wiki/doc/api/jsapi.php?chapter=9_1
+     * @param query
+     * @return
+     */
+    Result<?> WXParkLotQrPay(ParkLotQrPayQuery query);
 }

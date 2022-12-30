@@ -13,11 +13,8 @@ import javax.validation.constraints.NotNull;
 @Data
 public class ParkLotQrQuery {
 
-    @NotNull(message = "通道id不可为空")
-    private int passageId;
-
     @NotNull(message = "车场Id不可为空")
-    private int parkId;
+    private Integer parkId;
 
     @NotNull(message = "车牌号不可为空")
     private String PlateNumber;

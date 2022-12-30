@@ -30,6 +30,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import tk.mybatis.mapper.entity.Example;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
@@ -53,6 +54,9 @@ public class PublicBasisServiceImpl implements PublicBasisService {
     private static String NOTIFYURL=prop.get("notifyUrl");
     private static Integer MONEUSERID=Integer.parseInt(prop.get("moneUserid"));
     private static Integer MONECOMPANYID=Integer.parseInt(prop.get("monecompanyid"));
+
+    @Resource
+    private AbpWeixinConfigMapper abpWeixinConfigMapper;
 
     @Autowired
     private RedisTemplate redisTemplate;
@@ -835,6 +839,14 @@ public class PublicBasisServiceImpl implements PublicBasisService {
 
 
         return Result.success(query.getXmlResult());
+    }
+
+    @Override
+    public AbpWeixinConfig getConfigByTenantId(Integer tenantId) {
+        Example example = new Example(AbpWeixinConfig.class);
+        Example.Criteria criteria = example.createCriteria();
+        criteria.andEqualTo("TenantId", tenantId);
+        return  abpWeixinConfigMapper.selectByExample(example).get(0);
     }
 
 

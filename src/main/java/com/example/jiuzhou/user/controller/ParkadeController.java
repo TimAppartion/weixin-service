@@ -2,6 +2,7 @@ package com.example.jiuzhou.user.controller;
 
 import com.example.jiuzhou.common.Enum.ResultEnum;
 import com.example.jiuzhou.common.utils.Result;
+import com.example.jiuzhou.user.query.ParkLotQrPayQuery;
 import com.example.jiuzhou.user.query.ParkLotQrQuery;
 import com.example.jiuzhou.user.service.ParkLotService;
 import lombok.extern.slf4j.Slf4j;
@@ -34,7 +35,6 @@ public class ParkadeController {
      */
     @PostMapping("/parkLotQr")
     public Result<?> parkLotQr(@RequestBody ParkLotQrQuery query){
-
         return parkLotService.parkLotQr(query);
     }
 
@@ -43,10 +43,13 @@ public class ParkadeController {
      * @param query
      * @return
      */
-    @PostMapping("/weiXin/parkLotQrPay")
-    public Result<?> WXParkLotQrPay(@RequestBody ParkLotQrQuery query){
+    @PostMapping("/wx/parkLotQrPay")
+    public Result<?> WXParkLotQrPay(@RequestBody ParkLotQrPayQuery query){
 
-        return parkLotService.parkLotQr(query);
+        if(StringUtils.isEmpty(query.getOpenId()) || StringUtils.isEmpty(query.getPlateNumber()) || StringUtils.isEmpty(query.getGuid())){
+            return Result.error(ResultEnum.MISS_DATA);
+        }
+        return parkLotService.WXParkLotQrPay(query);
     }
 
     /**
@@ -57,7 +60,7 @@ public class ParkadeController {
     @PostMapping("/zfb/parkLotQrPay")
     public Result<?> ZFBParkLotQrPay(@RequestBody ParkLotQrQuery query){
 
-        return parkLotService.parkLotQr(query);
+        return parkLotService.ZFBParkLotQrPay(query);
     }
     /**
      * 通道码扫码查询订单
@@ -69,7 +72,7 @@ public class ParkadeController {
     @PostMapping("/passageQr")
     public Result<?> passageQr(@RequestBody ParkLotQrQuery query){
 
-        return parkLotService.parkLotQr(query);
+        return parkLotService.passageQr(query);
     }
 
 }
