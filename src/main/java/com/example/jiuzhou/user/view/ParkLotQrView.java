@@ -48,4 +48,6 @@ public class ParkLotQrView {
      * 本次应缴 计算当前时间减去已缴金额
      */
     private BigDecimal thisPay;
+
+    private String stopTime;
 }

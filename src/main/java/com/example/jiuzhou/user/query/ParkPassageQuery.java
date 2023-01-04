@@ -6,17 +6,17 @@ import javax.validation.constraints.NotNull;
 
 /**
  * @author Appartion
- * @data 2022/12/29
+ * @data 2023/1/3
  * 一入代码深似海，从此生活是路人
- * 场内扫码query
  */
 @Data
-public class ParkLotQrQuery {
+public class ParkPassageQuery {
+    @NotNull(message = "通道id不可为空")
+    private Integer passageId;
 
     @NotNull(message = "车场Id不可为空")
     private Integer parkId;
 
-    @NotNull(message = "车牌号不可为空")
-    private String plateNumber;
 
+    private String plateNumber;
 }

@@ -5,4 +5,7 @@
 
 <mapper namespace="com.example.jiuzhou.user.mapper.AbpParkadePassRecordMapper">
 
+    <select id="getByPassageId" resultType="com.example.jiuzhou.user.model.AbpParkadePassRecord">
+        select * from AbpParkadePassRecord where PassageId = #{PassageId}
+    </select>
 </mapper>

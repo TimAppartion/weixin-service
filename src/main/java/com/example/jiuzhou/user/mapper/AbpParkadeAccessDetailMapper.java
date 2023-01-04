@@ -12,5 +12,6 @@ import tk.mybatis.mapper.common.Mapper;
  */
 public interface AbpParkadeAccessDetailMapper extends Mapper<AbpParkadeAccessDetail> {
 
-    ParkLotQrView getLotQrByPlateNumber(@Param("plateNumber")String plateNumber, @Param("parKId")Integer parkId);
+    ParkLotQrView getLotQrByPlateNumber(@Param("plateNumber")String plateNumber, @Param("parkId")Integer parkId);
+    AbpParkadeAccessDetail getByGuid(@Param("guid")String guid);
 }

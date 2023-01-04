@@ -80,4 +80,13 @@
         ORDER BY
         CarInTime DESC
     </select>
+    <select id="getByPlateNumber" resultType="com.example.jiuzhou.user.model.AbpBusinessDetail">
+        select top 1 *
+        from AbpBusinessDetail
+        where
+        PlateNumber = #{plateNumber}
+        and status = 1
+        ORDER BY
+        CarInTime DESC
+    </select>
 </mapper>

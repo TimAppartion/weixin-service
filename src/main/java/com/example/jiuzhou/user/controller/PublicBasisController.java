@@ -116,7 +116,6 @@ public class PublicBasisController {
         String s = builder.toString();
 
         Map<String,String> map = PaymentKit.xmlToMap(s);
-        log.info("微信回调转换为map：{}",map);
         if(map!=null && "success".equalsIgnoreCase(map.get("result_code"))){
             //支付成功处理业务
             Result result=publicBasisService.weiXinCallBack(map);

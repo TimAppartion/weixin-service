@@ -6,6 +6,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.persistence.Column;
 import javax.persistence.Table;
+import java.math.BigDecimal;
 import java.util.Date;
 
 /**
@@ -26,7 +27,7 @@ public class ParkPayRecord {
     private Integer TenantId;
 
     @Column(name="Money")
-    private Integer Money;
+    private BigDecimal Money;
 
     @Column(name="ParkadeAccessId")
     private Integer ParkadeAccessId;

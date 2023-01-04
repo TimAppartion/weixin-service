@@ -30,4 +30,7 @@
         and bd.Status = 1
         order by CarInTime Desc
     </select>
+    <select id="getByGuid" resultType="com.example.jiuzhou.user.model.AbpParkadeAccessDetail">
+        select * from AbpParkadeAccessDetail where guid =#{guid}
+    </select>
 </mapper>

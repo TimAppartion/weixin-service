@@ -29,7 +29,7 @@ spring:
     active: prod
   datasource:
     driverClassName: com.microsoft.sqlserver.jdbc.SQLServerDriver
-    url: jdbc:sqlserver://121.36.209.245:1433;DatabaseName=F2V20Init1
+    url: jdbc:sqlserver://121.36.209.245:1433;DatabaseName=F2V20InitPark
     username: sa
     password: Fxintel123
     #Mysql

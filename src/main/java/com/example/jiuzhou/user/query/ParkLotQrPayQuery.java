@@ -2,6 +2,7 @@ package com.example.jiuzhou.user.query;
 
 import lombok.Data;
 
+import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 
 /**
@@ -12,10 +13,6 @@ import java.math.BigDecimal;
  */
 @Data
 public class ParkLotQrPayQuery {
-    /**
-     * 车牌号
-     */
-    private String plateNumber;
 
     /**
      * 订单号
@@ -29,4 +26,10 @@ public class ParkLotQrPayQuery {
     private Integer parkId;
 
     private BigDecimal money;
+
+    /**
+     * 扫码类型 1-场内码 2-车道码
+     */
+    @NotNull(message = "扫码类型不可为空")
+    private Integer qrType;
 }

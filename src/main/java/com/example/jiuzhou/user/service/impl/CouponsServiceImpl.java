@@ -64,6 +64,9 @@ public class CouponsServiceImpl implements CouponsService {
     @Override
     public void useCoupon(String couponId, Integer status) {
         CouponsView details=couponsDetailsMapper.getDetails(couponId);
+        if(details==null){
+            return;
+        }
         CouponsDetails model=new CouponsDetails();
 
         model.setId(details.getId());

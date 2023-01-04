@@ -3,6 +3,9 @@ package com.example.jiuzhou.user.service;
 import com.example.jiuzhou.common.utils.Result;
 import com.example.jiuzhou.user.query.ParkLotQrPayQuery;
 import com.example.jiuzhou.user.query.ParkLotQrQuery;
+import com.example.jiuzhou.user.query.ParkPassageQuery;
+
+import java.util.Map;
 
 /**
  * @author Appartion
@@ -24,4 +27,9 @@ public interface ParkLotService {
      * @return
      */
     Result<?> WXParkLotQrPay(ParkLotQrPayQuery query);
+
+    Result<?> WXParkLotQrPayBack(Map<String,String> map);
+
+    Result<?> passageQr(ParkPassageQuery query);
+
 }
