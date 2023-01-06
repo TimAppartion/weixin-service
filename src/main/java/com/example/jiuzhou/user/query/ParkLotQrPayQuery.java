@@ -32,4 +32,18 @@ public class ParkLotQrPayQuery {
      */
     @NotNull(message = "扫码类型不可为空")
     private Integer qrType;
+
+    private Integer passageId;
+
+    /**
+     * 支付宝返回页面
+     */
+    private String returnUrl;
+
+    /**
+     * 支付宝中途退出返回页面
+     */
+    private String quitUrl;
+
+    private String subject;
 }

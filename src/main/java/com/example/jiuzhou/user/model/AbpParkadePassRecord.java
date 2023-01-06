@@ -21,13 +21,16 @@ public class AbpParkadePassRecord {
     private Integer Id;
 
     @Column(name="PassageId")
-    private Integer PassageId;
+    private Integer passageId;
 
     @Column(name="PlateNumber")
-    private String PlateNumber;
+    private String plateNumber;
 
     @Column(name="CreationTime")
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date CreationTime;
+    private Date creationTime;
+
+    @Column(name = "ParkId")
+    private Integer parkId;
 }

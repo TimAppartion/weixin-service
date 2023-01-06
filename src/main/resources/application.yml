@@ -94,4 +94,7 @@ jackson:
 
 
 
+parkLot:
+  openUrl: http://121.36.209.245:8001/api/InterfaceParkade/OpenPole
+
 

@@ -1,6 +1,13 @@
 package com.example.jiuzhou.user.service.impl;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.alipay.api.AlipayApiException;
+import com.alipay.api.AlipayClient;
+import com.alipay.api.DefaultAlipayClient;
+import com.alipay.api.domain.AlipayAccount;
+import com.alipay.api.request.AlipayTradeWapPayRequest;
+import com.alipay.api.response.AlipayTradeWapPayResponse;
 import com.example.jiuzhou.common.Enum.ResultEnum;
 import com.example.jiuzhou.common.utils.AbDateUtil;
 import com.example.jiuzhou.common.utils.DateUtils;
@@ -18,13 +25,16 @@ import com.example.jiuzhou.user.query.ParkPassageQuery;
 import com.example.jiuzhou.user.service.ParkLotService;
 import com.example.jiuzhou.user.service.PublicBasisService;
 import com.example.jiuzhou.user.view.ParkLotQrView;
+import com.example.jiuzhou.user.view.ParkadePassView;
 import com.jfinal.kit.Prop;
 import com.jfinal.kit.PropKit;
 import com.jfinal.kit.StrKit;
 import com.jfinal.weixin.sdk.api.PaymentApi;
 import com.jfinal.weixin.sdk.kit.PaymentKit;
+import com.jfinal.weixin.sdk.utils.HttpUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -49,6 +59,18 @@ public class ParkLotServiceImpl implements ParkLotService {
     private static String WxQrLotNotifyUrl=prop.get("QrLotNotifyUrl");
     private static String WxQrPassageNotifyUrl=prop.get("QrPassageNotifyUrl");
 
+    private static final Prop zfbProp = PropKit.use("zfb.properties");
+    private static String APP_ID=zfbProp.get("app_id");
+    private static String APP_PRIVATE_KEY=zfbProp.get("app_private_key");
+    private static String APP_PUBLIC_KEY=zfbProp.get("app_public_key");
+    private static String CHARSEt=zfbProp.get("charset");
+    private static String APP_URL=zfbProp.get("app_url");
+    private static String ZFBNOTIFYURL=zfbProp.get("notify_url");
+
+
+    @Value("${parkLot.openUrl}")
+    private String openUrl;
+
     @Resource
     private PublicBasisService publicBasisService;
     @Resource
@@ -70,6 +92,9 @@ public class ParkLotServiceImpl implements ParkLotService {
 
     @Resource
     private ParkPayRecordMapper parkPayRecordMapper;
+
+    @Resource
+    private ZfbOrdersMapper zfbOrdersMapper;
 
     @Override
     public Result<?> parkLotQr(ParkLotQrQuery query) {
@@ -111,8 +136,16 @@ public class ParkLotServiceImpl implements ParkLotService {
         params.put("out_trade_no",out_trade_no);
         params.put("total_fee",String.valueOf((int) (Float.valueOf(query.getMoney().toString()) * 100)));
 
+        if(query.getQrType()==2){
+            Map<String,Object> attach = new HashMap<>();
+            attach.put("guid",businessDetail.getGuid());
+            attach.put("passageId",query.getPassageId());
+            params.put("attach", JSONObject.toJSONString(attach));//临时信息存订单guid
+        }else{
+            params.put("attach", businessDetail.getGuid());//临时信息存订单guid
+        }
 
-        params.put("attach", businessDetail.getGuid());//临时信息存订单guid
+
         params.put("spbill_create_ip","127.0.0.1");
         params.put("trade_type", PaymentApi.TradeType.JSAPI.name());
         params.put("nonce_str",System.currentTimeMillis()/1000+"");
@@ -151,7 +184,17 @@ public class ParkLotServiceImpl implements ParkLotService {
     @Transactional(rollbackFor = Exception.class)
     public Result<?> WXParkLotQrPayBack(Map<String, String> map) {
         log.info("微信扫码下单回调转换为map：{}",map);
+
         AbpBusinessDetail businessDetail =  businessDetailMapper.getByGuid(map.get("attach"));
+        //防止重复通知
+        AbpWeixinConfig config = publicBasisService.getConfigByTenantId(businessDetail.getTenantId());
+        ParkPayRecord record = parkPayRecordMapper.getByTransactionId(map.get("transaction_id"));
+        Boolean payKit=PaymentKit.verifyNotify(map, config.getPaternerKey());
+        if(record!=null || !payKit){
+            return Result.success();
+        }
+
+
 
         BigDecimal money = new BigDecimal(Double.valueOf(map.get("total_fee"))*0.01);
         //更新订单信息
@@ -169,7 +212,8 @@ public class ParkLotServiceImpl implements ParkLotService {
         parkPayRecord.setOpenId(map.get("openid"));
         parkPayRecord.setPlateNumber(businessDetail.getPlateNumber());
         parkPayRecord.setCreationTime(new Date());
-        parkPayRecordMapper.insert(parkPayRecord);
+        parkPayRecord.setTransactionId(map.get("transaction_id"));
+        parkPayRecordMapper.insertOne(parkPayRecord);
         return Result.success();
     }
 
@@ -177,7 +221,7 @@ public class ParkLotServiceImpl implements ParkLotService {
     public Result<?> passageQr(ParkPassageQuery query) {
 
         try{
-            AbpParkadePassRecord passRecord =  parkadePassRecordMapper.getByPassageId(query.getPassageId());
+            ParkadePassView passRecord =  parkadePassRecordMapper.getByPassageId(query.getPassageId(),query.getParkId());
             ParkLotQrView parkLotQrView;
             if(passRecord == null){
                 if(StringUtils.isNotEmpty(query.getPlateNumber())){
@@ -186,7 +230,10 @@ public class ParkLotServiceImpl implements ParkLotService {
                     return Result.error(ResultEnum.MISS_DATA,"未查询到通道记录");
                 }
             }else{
-                 parkLotQrView = parkadeAccessDetailMapper.getLotQrByPlateNumber(query.getPlateNumber(), query.getParkId());
+                 parkLotQrView = parkadeAccessDetailMapper.getLotQrByPlateNumber(passRecord.getPlateNumber(), passRecord.getParkId());
+            }
+            if(parkLotQrView==null){
+                return Result.error(ResultEnum.MISS_DATA,"未查询到通道记录");
             }
             BigDecimal money =this.moneyCount(parkLotQrView.getBerthsecId(),parkLotQrView.getCarType(),parkLotQrView.getCarPayTime(),parkLotQrView.getCarInTime(),parkLotQrView.getPlateNumber());
             if(money.compareTo(new BigDecimal(0))==0){
@@ -201,6 +248,128 @@ public class ParkLotServiceImpl implements ParkLotService {
             e.printStackTrace();
             return Result.error("未查询到订单信息");
         }
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result<?> WXParkPassageQrPayBack(Map<String, String> map) {
+        log.info("微信扫码下单回调转换为map：{}",map);
+
+        Map<String,Object> attach = JSONObject.parseObject(map.get("attach"),HashMap.class);
+
+        AbpBusinessDetail businessDetail =  businessDetailMapper.getByGuid(attach.get("guid").toString());
+        //防止重复通知
+        AbpWeixinConfig config = publicBasisService.getConfigByTenantId(businessDetail.getTenantId());
+        ParkPayRecord record = parkPayRecordMapper.getByTransactionId(map.get("transaction_id"));
+        Boolean payKit=PaymentKit.verifyNotify(map, config.getPaternerKey());
+        if(record!=null || !payKit){
+            return Result.success();
+        }
+
+        BigDecimal money = new BigDecimal(Double.valueOf(map.get("total_fee"))*0.01);
+        Date now = new Date();
+        //更新订单信息  订单直接完结
+        businessDetail.setStatus(7);
+        businessDetail.setCarPayTime(now);
+        businessDetail.setReceivable(businessDetail.getReceivable().add(money));
+        businessDetail.setMoney(businessDetail.getReceivable());
+        businessDetail.setFactReceive(businessDetail.getReceivable());
+        businessDetail.setCarOutTime(now);
+        businessDetailMapper.updateByPrimaryKey(businessDetail);
+
+        //修改进出场记录
+        AbpParkadeAccessDetail accessDetail = parkadeAccessDetailMapper.getByGuid(businessDetail.getGuid());
+        accessDetail.setCarOutTime(now);
+        accessDetail.setStopTime(now.getTime()-accessDetail.getCarInTime().getTime());
+        accessDetail.setReceivable(businessDetail.getReceivable());
+        parkadeAccessDetailMapper.updateByPrimaryKey(accessDetail);
+
+        //记录流水
+        ParkPayRecord parkPayRecord = new ParkPayRecord();
+        parkPayRecord.setTenantId(businessDetail.getTenantId());
+        parkPayRecord.setMoney(money);
+        parkPayRecord.setParkadeAccessId(accessDetail.getId());
+        parkPayRecord.setOpenId(map.get("openid"));
+        parkPayRecord.setPlateNumber(businessDetail.getPlateNumber());
+        parkPayRecord.setCreationTime(now);
+        parkPayRecord.setTransactionId(map.get("transaction_id"));
+        parkPayRecordMapper.insertOne(parkPayRecord);
+
+        HashMap<String,Object> params = new HashMap<>();
+        params.put("PassageId",attach.get("passageId"));
+        HttpUtils.post(openUrl,JSONObject.toJSONString(params));
+        return Result.success();
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result<?> ZFBParkLotQrPay(ParkLotQrPayQuery query) {
+
+        //订单id
+        String out_trade_no= UUID.randomUUID().toString().replace("-","");
+
+        //获得初始化的AlipayClient
+        AlipayClient alipayClient = new DefaultAlipayClient(APP_URL,APP_ID, APP_PRIVATE_KEY,
+                "json", CHARSEt, APP_PUBLIC_KEY,"RSA2");
+
+        //记录订单信息支付成功回调处理订单业务
+        ZfbOrders zfbOrders = new ZfbOrders();
+        zfbOrders.setOut_trade_no(out_trade_no);
+        zfbOrders.setFee(query.getMoney());
+        zfbOrders.setGuid(query.getGuid());
+        zfbOrders.setIsOver(1);
+        zfbOrders.setTotal_amount(query.getMoney());
+        zfbOrders.setPayFrom(2);
+        zfbOrdersMapper.insert(zfbOrders);
+
+        //设置请求参数
+        AlipayTradeWapPayRequest alipayRequest = new AlipayTradeWapPayRequest ();
+        alipayRequest.setReturnUrl(query.getReturnUrl());
+        alipayRequest.setNotifyUrl(ZFBNOTIFYURL);
+        alipayRequest.setBizContent("{\"out_trade_no\":\"" + out_trade_no + "\","
+                + "\"total_amount\":\"" + query.getMoney() + "\","
+                + "\"subject\":\"" + query.getSubject() + "\","
+                + "\"quit_url\":\"" + query.getQuitUrl() + "\","
+                + "\"product_code\":\"QUICK_WAP_WAY\"}");
+
+        //请求
+        log.info("支付宝订单支付请求参数：{}",JSONObject.toJSONString(alipayRequest));
+        try {
+            AlipayTradeWapPayResponse response = alipayClient.pageExecute(alipayRequest,"get");
+            return Result.success(response);
+        }catch (AlipayApiException e){
+            e.printStackTrace();
+            return Result.error(ResultEnum.ERROR,"支付订单下单失败");
+        }
+
+    }
+
+    @Override
+    public String ZFBParkLotQrPayBack(Map<String, String> params) {
+        String result = "failure";
+        ZfbOrders zfbOrders  = zfbOrdersMapper.getByOutTradeNo(params.get("out_trade_no"));
+        if(zfbOrders.getIsOver()==2){
+            result = "success";
+            return result;
+        }
+        Date now = new Date();
+        //订单详情
+        AbpBusinessDetail businessDetail = businessDetailMapper.getByGuid(zfbOrders.getGuid());
+
+        //进出场记录
+        AbpParkadeAccessDetail accessDetail = parkadeAccessDetailMapper.getByGuid(businessDetail.getGuid());
+
+        //停车场流水记录
+        ParkPayRecord parkPayRecord = new ParkPayRecord();
+        parkPayRecord.setTenantId(businessDetail.getTenantId());
+        parkPayRecord.setMoney(zfbOrders.getTotal_amount());
+        parkPayRecord.setParkadeAccessId(accessDetail.getId());
+        parkPayRecord.setUserId(params.get("buyer_id"));
+        parkPayRecord.setPlateNumber(businessDetail.getPlateNumber());
+        parkPayRecord.setCreationTime(now);
+//        parkPayRecord.setTransactionId(map.get("transaction_id"));
+        parkPayRecordMapper.insertOne(parkPayRecord);
+        return null;
     }
 
     public  BigDecimal moneyCount(Integer BerthsecId,String carType,Date payTime,Date carInTime,String plateNumber){
@@ -225,8 +394,8 @@ public class ParkLotServiceImpl implements ParkLotService {
         calModel = RateCalculate.ProcessRateCalculate(
                 carInTime, new Date(),
                 2, plateNumber, rates, 1, new AbpMonthlyCars());
-        BigDecimal money =new BigDecimal(String.format("%.2f",calModel.CalculateMoney));
-
+//        BigDecimal money =new BigDecimal(String.format("%.2f",calModel.CalculateMoney));
+        BigDecimal money  = new BigDecimal("0.01");
         return money;
     }
 

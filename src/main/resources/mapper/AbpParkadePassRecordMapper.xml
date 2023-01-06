@@ -5,7 +5,13 @@
 
 <mapper namespace="com.example.jiuzhou.user.mapper.AbpParkadePassRecordMapper">
 
-    <select id="getByPassageId" resultType="com.example.jiuzhou.user.model.AbpParkadePassRecord">
-        select * from AbpParkadePassRecord where PassageId = #{PassageId}
+    <select id="getByPassageId" resultType="com.example.jiuzhou.user.view.ParkadePassView">
+        select
+            ppr.PassageId as passageId,
+            ppr.PlateNumber as plateNumber,
+            pp.parkId as parkId
+        from AbpParkadePassRecord ppr
+        left join AbpParkadePassage pp on ppr.PassageId = pp.Id
+        where ppr.PassageId = #{passageId} and pp.parkId = #{parkId}
     </select>
 </mapper>

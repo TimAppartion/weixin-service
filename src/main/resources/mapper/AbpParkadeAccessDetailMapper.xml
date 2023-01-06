@@ -27,7 +27,7 @@
         where ad.PlateNumber=#{plateNumber}
         and ad.ParkId = #{parkId}
         and ad.CarOutTime is null
-        and bd.Status = 1
+        and bd.Status in (1,6)
         order by CarInTime Desc
     </select>
     <select id="getByGuid" resultType="com.example.jiuzhou.user.model.AbpParkadeAccessDetail">

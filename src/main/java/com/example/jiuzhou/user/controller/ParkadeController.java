@@ -1,5 +1,6 @@
 package com.example.jiuzhou.user.controller;
 
+import com.alibaba.fastjson.JSONObject;
 import com.example.jiuzhou.common.Enum.ResultEnum;
 import com.example.jiuzhou.common.utils.Result;
 import com.example.jiuzhou.user.query.ParkLotQrPayQuery;
@@ -9,10 +10,7 @@ import com.example.jiuzhou.user.service.ParkLotService;
 import com.jfinal.weixin.sdk.kit.PaymentKit;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.ServletInputStream;
@@ -56,6 +54,9 @@ public class ParkadeController {
         if(StringUtils.isEmpty(query.getOpenId())  || StringUtils.isEmpty(query.getGuid())){
             return Result.error(ResultEnum.MISS_DATA);
         }
+        if(query.getQrType()==2 && query.getPassageId()==null){
+            return Result.error(ResultEnum.MISS_DATA);
+        }
         return parkLotService.WXParkLotQrPay(query);
     }
 
@@ -97,14 +98,26 @@ public class ParkadeController {
 
 
     /**
-     * 支付宝场内支付
+     * 支付宝扫码下单
      * @param query
      * @return
      */
     @PostMapping("/zfb/parkLotQrPay")
-    public Result<?> ZFBParkLotQrPay(@RequestBody ParkLotQrQuery query){
-        return Result.success();
-//        return parkLotService.ZFBParkLotQrPay(query);
+    public Result<?> ZFBParkLotQrPay(@RequestBody ParkLotQrPayQuery query){
+        return parkLotService.ZFBParkLotQrPay(query);
+    }
+
+
+    /**
+     * 支付宝扫码支付回调接口
+     * @param params
+     * @return
+     */
+    @PostMapping("/zfb/parkLotQrPayBack")
+    public String ZFBParkLotQrPayBack(@RequestParam Map<String, String> params){
+        String var= JSONObject.toJSONString(params);
+        log.info("停车场支付回调接口：{}",var);
+        return parkLotService.ZFBParkLotQrPayBack(params);
     }
     /**
      * 通道码扫码查询订单
@@ -118,4 +131,39 @@ public class ParkadeController {
         return parkLotService.passageQr(query);
     }
 
+    /**
+     * 通道扫码下单支付回调接口
+     * @param request
+     * @return
+     */
+    @PostMapping("/wx/parkPassageQrPayBack")
+    public String WXParkPassageQrPayBack(HttpServletRequest request) throws IOException {
+
+        log.info("微信扫码下单回调接口返回参数：{}",request);
+        ServletInputStream is = request.getInputStream();
+        byte[] bs = new byte[1024];
+        int len = -1;
+        StringBuilder builder = new StringBuilder();
+        while ((len = is.read(bs)) != -1){
+            builder.append(new String(bs,0,len));
+        }
+        String s = builder.toString();
+
+        Map<String,String> map = PaymentKit.xmlToMap(s);
+
+        if(map!=null && "success".equalsIgnoreCase(map.get("result_code"))){
+            //支付成功处理业务
+            Result result=parkLotService.WXParkPassageQrPayBack(map);
+            if(result.getCode()!=200){
+                return null;
+            }
+            Map<String,String> responseMap=new HashMap<>();
+            responseMap.put("return_code","SUCCESS");
+            responseMap.put("return_msg","OK");
+            responseMap.put("appid",map.get("appid"));
+            responseMap.put("result_code","success");
+            return PaymentKit.toXml(responseMap);
+        }
+        return null;
+    }
 }

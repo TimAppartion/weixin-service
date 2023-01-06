@@ -158,7 +158,9 @@ public class WeiXinMessageServiceImpl implements WeiXinMessageService {
                 String str = HttpUtils.get(GetPageAccessTokenUrl);
                 log.info("微信获取token：{}",str);
                 JSONObject jsonObject = JSON.parseObject(str);
-
+                if(jsonObject.get("access_token")==null){
+                    return Result.error("微信获取token失败");
+                }
                 token = String.valueOf(jsonObject.get("access_token"));
 
                 redisTemplate.opsForValue().set("WeiXinToken", token,7100, TimeUnit.SECONDS);

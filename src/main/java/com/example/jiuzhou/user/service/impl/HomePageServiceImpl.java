@@ -174,6 +174,9 @@ public class HomePageServiceImpl implements HomePageService {
                 String Str = HttpUtils.get(GetPageAccessTokenUrl);
                 log.info("获取ticket：{}",Str);
                 JSONObject jsonObject = JSON.parseObject(Str);
+                if(jsonObject.get("ticket")==null){
+                    return "error";
+                }
                 ticket = String.valueOf(jsonObject.get("ticket"));//获取ticket
                 redisTemplate.opsForValue().set("ticket",ticket,7100, TimeUnit.SECONDS);
 

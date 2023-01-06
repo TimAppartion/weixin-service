@@ -29,14 +29,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/zfb")
 public class ZhiFuBaoPayController {
-    private static final Prop prop = PropKit.use("zfb.properties");
-    private static String APP_ID=prop.get("app_id");
-    private static String APP_PRIVATE_KEY=prop.get("app_private_key");
-    private static String APP_PUBLIC_KEY=prop.get("app_public_key");
-    private static String CHARSEt=prop.get("charset");
-    private static String APP_URL=prop.get("app_url");
-    private static String NOTIFY_URL=prop.get("notify_url");
-    private static String RETURN_URL=prop.get("return_url");
+
 
 
     @Resource

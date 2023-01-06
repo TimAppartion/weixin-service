@@ -32,4 +32,16 @@ public interface ParkLotService {
 
     Result<?> passageQr(ParkPassageQuery query);
 
+    Result<?> WXParkPassageQrPayBack(Map<String,String> map);
+
+    /**
+     * 支付宝扫码下单
+     * @param query
+     * @return
+     */
+    Result<?> ZFBParkLotQrPay(ParkLotQrPayQuery query);
+
+    String ZFBParkLotQrPayBack( Map<String, String> params);
+
+
 }

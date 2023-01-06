@@ -50,7 +50,7 @@ public class AbpParkadeAccessDetail {
     private Date CarOutTime;
 
     @Column(name="StopTime")
-    private Integer StopTime;
+    private long StopTime;
 
     @Column(name="guid")
     private String guid;
