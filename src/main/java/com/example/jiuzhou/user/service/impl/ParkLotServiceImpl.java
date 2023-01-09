@@ -65,7 +65,7 @@ public class ParkLotServiceImpl implements ParkLotService {
     private static String APP_PUBLIC_KEY=zfbProp.get("app_public_key");
     private static String CHARSEt=zfbProp.get("charset");
     private static String APP_URL=zfbProp.get("app_url");
-    private static String ZFBNOTIFYURL=zfbProp.get("notify_url");
+    private static String ZFBNOTIFYURL=zfbProp.get("parkLotUrl");
 
 
     @Value("${parkLot.openUrl}")
@@ -193,13 +193,13 @@ public class ParkLotServiceImpl implements ParkLotService {
         if(record!=null || !payKit){
             return Result.success();
         }
-
+        Date now = new Date();
 
 
         BigDecimal money = new BigDecimal(Double.valueOf(map.get("total_fee"))*0.01);
         //更新订单信息
         businessDetail.setStatus(6);
-        businessDetail.setCarPayTime(new Date());
+        businessDetail.setCarPayTime(now);
         businessDetail.setReceivable(businessDetail.getReceivable().add(money));
         businessDetailMapper.updateByPrimaryKey(businessDetail);
 
@@ -211,7 +211,7 @@ public class ParkLotServiceImpl implements ParkLotService {
         parkPayRecord.setParkadeAccessId(accessDetail.getId());
         parkPayRecord.setOpenId(map.get("openid"));
         parkPayRecord.setPlateNumber(businessDetail.getPlateNumber());
-        parkPayRecord.setCreationTime(new Date());
+        parkPayRecord.setCreationTime(now);
         parkPayRecord.setTransactionId(map.get("transaction_id"));
         parkPayRecordMapper.insertOne(parkPayRecord);
         return Result.success();
@@ -313,14 +313,18 @@ public class ParkLotServiceImpl implements ParkLotService {
                 "json", CHARSEt, APP_PUBLIC_KEY,"RSA2");
 
         //记录订单信息支付成功回调处理订单业务
-        ZfbOrders zfbOrders = new ZfbOrders();
-        zfbOrders.setOut_trade_no(out_trade_no);
-        zfbOrders.setFee(query.getMoney());
-        zfbOrders.setGuid(query.getGuid());
-        zfbOrders.setIsOver(1);
-        zfbOrders.setTotal_amount(query.getMoney());
-        zfbOrders.setPayFrom(2);
-        zfbOrdersMapper.insert(zfbOrders);
+//        ZfbOrders zfbOrders = new ZfbOrders();
+//        zfbOrders.setOut_trade_no(out_trade_no);
+//        zfbOrders.setFee(query.getMoney());
+//        zfbOrders.setGuid(query.getGuid());
+//        zfbOrders.setIsOver(1);
+//        zfbOrders.setTotal_amount(query.getMoney());
+//        zfbOrders.setPayFrom(2);
+//        zfbOrdersMapper.insert(zfbOrders);
+        Map <String,Object> business_params = new HashMap<>();
+        business_params.put("guid",query.getGuid());
+        business_params.put("qrType",query.getQrType());
+        business_params.put("passageId",query.getPassageId());
 
         //设置请求参数
         AlipayTradeWapPayRequest alipayRequest = new AlipayTradeWapPayRequest ();
@@ -330,6 +334,7 @@ public class ParkLotServiceImpl implements ParkLotService {
                 + "\"total_amount\":\"" + query.getMoney() + "\","
                 + "\"subject\":\"" + query.getSubject() + "\","
                 + "\"quit_url\":\"" + query.getQuitUrl() + "\","
+                + "\"business_params\":\"" + JSONObject.toJSONString(business_params) + "\","
                 + "\"product_code\":\"QUICK_WAP_WAY\"}");
 
         //请求
@@ -347,29 +352,54 @@ public class ParkLotServiceImpl implements ParkLotService {
     @Override
     public String ZFBParkLotQrPayBack(Map<String, String> params) {
         String result = "failure";
-        ZfbOrders zfbOrders  = zfbOrdersMapper.getByOutTradeNo(params.get("out_trade_no"));
-        if(zfbOrders.getIsOver()==2){
+        Map <String,String> business_params = JSONObject.parseObject(params.get("business_params"),HashMap.class);
+        AbpBusinessDetail businessDetail = businessDetailMapper.getByGuid(business_params.get("guid"));
+        if(businessDetail.getStatus()!=1){
             result = "success";
             return result;
         }
-        Date now = new Date();
-        //订单详情
-        AbpBusinessDetail businessDetail = businessDetailMapper.getByGuid(zfbOrders.getGuid());
-
         //进出场记录
         AbpParkadeAccessDetail accessDetail = parkadeAccessDetailMapper.getByGuid(businessDetail.getGuid());
+
+        Date now = new Date();
+        BigDecimal money = new BigDecimal(params.get("total_amount"));
+
+        businessDetail.setCarPayTime(now);
+        businessDetail.setReceivable(businessDetail.getReceivable().add(money));
+
+        //1-场内码 2-车道码
+        if(Integer.valueOf(business_params.get("qrType"))==1){
+            businessDetail.setStatus(6);
+        }else if (Integer.valueOf(business_params.get("qrType"))==2){
+            businessDetail.setStatus(7);
+            businessDetail.setCarOutTime(now);
+            businessDetail.setMoney(businessDetail.getReceivable());
+            businessDetail.setFactReceive(businessDetail.getReceivable());
+            //修改进出场记录
+            accessDetail.setCarOutTime(now);
+            accessDetail.setStopTime(now.getTime()-accessDetail.getCarInTime().getTime());
+            accessDetail.setReceivable(businessDetail.getReceivable());
+            parkadeAccessDetailMapper.updateByPrimaryKey(accessDetail);
+            //开闸
+            HashMap<String,Object> p = new HashMap<>();
+            p.put("PassageId",params.get("passageId"));
+            HttpUtils.post(openUrl,JSONObject.toJSONString(p));
+        }
+        //更新订单信息
+        businessDetailMapper.updateByPrimaryKey(businessDetail);
+
 
         //停车场流水记录
         ParkPayRecord parkPayRecord = new ParkPayRecord();
         parkPayRecord.setTenantId(businessDetail.getTenantId());
-        parkPayRecord.setMoney(zfbOrders.getTotal_amount());
+        parkPayRecord.setMoney(money);
         parkPayRecord.setParkadeAccessId(accessDetail.getId());
         parkPayRecord.setUserId(params.get("buyer_id"));
         parkPayRecord.setPlateNumber(businessDetail.getPlateNumber());
         parkPayRecord.setCreationTime(now);
 //        parkPayRecord.setTransactionId(map.get("transaction_id"));
         parkPayRecordMapper.insertOne(parkPayRecord);
-        return null;
+        return result;
     }
 
     public  BigDecimal moneyCount(Integer BerthsecId,String carType,Date payTime,Date carInTime,String plateNumber){
