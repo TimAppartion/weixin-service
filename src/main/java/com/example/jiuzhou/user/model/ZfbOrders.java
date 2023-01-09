@@ -52,7 +52,7 @@ public class ZfbOrders {
     private Boolean isMonthlyRenewal;
 
     @Column(name = "couponId")
-    private String couponId;
+    private Integer couponId;
 
     @Column(name = "isOver")
     private Integer isOver;

@@ -14,7 +14,7 @@ import java.util.Date;
 public class CouponsDetails implements Serializable {
     @javax.persistence.Id
     @Column(name="Id")
-    private String Id;
+    private Integer Id;
 
     @Column(name="PlanId")
     private Integer PlanId;
